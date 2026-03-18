@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Robot Learning V2 Bootcamp — Vizuara</title>
+<meta name="description" content="A hands-on bootcamp on modern robot learning: diffusion policies, vision-language-action models, and real-world deployment. By Vizuara.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..1000;1,6..12,300..1000&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f5;--surface:#f5f0e8;--card:#ffffff;
+  --accent:#c2785c;--warm:#8b6f4e;--teal:#6a9a5b;
+  --blue:#5a7fa5;--purple:#8a6baa;--text:#3a3025;
+  --muted:#8c7e6f;--border:#e5ddd3;--red:#d4543a;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0.75rem 2rem;display:flex;align-items:center;gap:0.75rem;
+}
+nav img{height:28px;opacity:0.85}
+nav span{font-family:'Caveat',cursive;font-size:1.15rem;color:var(--warm);font-weight:600}
+
+/* ── HERO ── */
+.hero{
+  max-width:860px;margin:0 auto;padding:4rem 2rem 3rem;text-align:center;
+}
+.hero h1{font-size:3rem;color:var(--accent);margin-bottom:0.5rem}
+.hero .subtitle{font-size:1.15rem;color:var(--warm);margin-bottom:1.5rem;font-weight:300}
+.hero p{color:var(--muted);max-width:620px;margin:0 auto;font-size:1.02rem}
+.badge{
+  display:inline-block;background:var(--surface);color:var(--warm);
+  font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  padding:0.3rem 0.9rem;border-radius:999px;margin-bottom:1rem;border:1px solid var(--border);
+}
+
+/* ── SECTION ── */
+section{max-width:960px;margin:0 auto;padding:0 2rem 4rem}
+section h2{font-size:2rem;color:var(--warm);margin-bottom:1.5rem;text-align:center}
+
+/* ── LECTURE GRID ── */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;
+}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;transition:transform 0.25s,box-shadow 0.25s;
+  display:flex;flex-direction:column;
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(58,48,37,0.1)}
+.card-banner{
+  height:160px;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.card-banner svg{width:80px;height:80px;opacity:0.7}
+.card-body{padding:1.25rem 1.5rem 1.5rem;flex:1;display:flex;flex-direction:column}
+.card-num{
+  font-family:'Caveat',cursive;font-size:0.85rem;color:var(--accent);font-weight:700;
+  letter-spacing:0.04em;margin-bottom:0.25rem;
+}
+.card-body h3{font-size:1.4rem;color:var(--text);margin-bottom:0.5rem;font-family:'Caveat',cursive}
+.card-body p{color:var(--muted);font-size:0.9rem;flex:1}
+.card-link{
+  display:inline-flex;align-items:center;gap:0.35rem;
+  margin-top:1rem;font-size:0.88rem;font-weight:600;color:var(--accent);
+  text-decoration:none;transition:gap 0.2s;
+}
+.card-link:hover{gap:0.6rem}
+.card-link svg{width:16px;height:16px}
+
+/* Banner colours per lecture */
+.banner-1{background:linear-gradient(135deg,#f5ede4 0%,#ecddd0 100%)}
+.banner-2{background:linear-gradient(135deg,#e8efe5 0%,#d5e3cf 100%)}
+.banner-3{background:linear-gradient(135deg,#e5ecf3 0%,#d0dce8 100%)}
+.banner-4{background:linear-gradient(135deg,#ede5f0 0%,#ddd0e8 100%)}
+
+/* Coming-soon state */
+.card.soon{opacity:0.55;pointer-events:none}
+.card.soon .card-link{display:none}
+.soon-tag{
+  display:inline-block;background:var(--surface);color:var(--muted);
+  font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;
+  padding:0.2rem 0.6rem;border-radius:999px;margin-top:1rem;border:1px solid var(--border);
+}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:2rem;color:var(--muted);font-size:0.82rem;
+  border-top:1px solid var(--border);
+}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── RESPONSIVE ── */
+@media(max-width:540px){
+  .hero h1{font-size:2.2rem}
+  .hero{padding:3rem 1.25rem 2rem}
+  section{padding:0 1.25rem 3rem}
+  nav{padding:0.6rem 1.25rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <img src="/vizuara-logo.png" alt="Vizuara">
+  <span>Modern Robot Learning V2</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">Free &amp; Open-Source Bootcamp</div>
+  <h1>Modern Robot Learning</h1>
+  <p class="subtitle">From Scratch, V2 Bootcamp</p>
+  <p>A hands-on journey through the algorithms powering today's smartest robots &mdash; diffusion policies, vision-language-action models, and real-world deployment on the SO-101 arm. Every lecture comes with interactive slides, coding notebooks, and 3D visualizations.</p>
+</div>
+
+<!-- Lectures -->
+<section>
+  <h2>Lectures</h2>
+  <div class="grid">
+
+    <!-- Lecture 1 — Diffusion Policy -->
+    <a href="/lecture-1/" class="card" style="text-decoration:none;color:inherit">
+      <div class="card-banner banner-1">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Diffusion noise → trajectory icon -->
+          <circle cx="18" cy="60" r="4" fill="#c2785c" opacity="0.6"/>
+          <circle cx="30" cy="50" r="3" fill="#c2785c" opacity="0.5"/>
+          <circle cx="24" cy="38" r="3.5" fill="#c2785c" opacity="0.4"/>
+          <circle cx="38" cy="30" r="3" fill="#c2785c" opacity="0.35"/>
+          <path d="M42 28 Q50 22 58 18" stroke="#c2785c" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+          <circle cx="58" cy="18" r="5" fill="#c2785c" opacity="0.9"/>
+          <path d="M18 60 C24 52 28 44 34 34 C38 28 46 22 58 18" stroke="#c2785c" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <div class="card-num">Lecture 1</div>
+        <h3>Diffusion Policy</h3>
+        <p>Visuo-motor policy learning via action diffusion &mdash; denoise Gaussian noise into precise robot trajectories.</p>
+        <span class="card-link">
+          Open lecture
+          <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </div>
+    </a>
+
+    <!-- Lecture 2 — Coming Soon -->
+    <div class="card soon">
+      <div class="card-banner banner-2">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="28" width="40" height="28" rx="4" stroke="#6a9a5b" stroke-width="2" opacity="0.5"/>
+          <circle cx="40" cy="42" r="8" stroke="#6a9a5b" stroke-width="2" opacity="0.5"/>
+          <path d="M32 22 L40 16 L48 22" stroke="#6a9a5b" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <div class="card-num">Lecture 2</div>
+        <h3>Coming Soon</h3>
+        <p>The next lecture is in the works. Stay tuned!</p>
+        <span class="soon-tag">Coming soon</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  Built with care by <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara</a> &middot; Open-source on <a href="https://github.com/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+</body>
+</html>

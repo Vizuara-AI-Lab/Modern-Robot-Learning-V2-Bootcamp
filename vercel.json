@@ -1,0 +1,7 @@
+{
+  "buildCommand": "bash build.sh",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/lecture-1/(.*)", "destination": "/lecture-1/index.html" }
+  ]
+}
