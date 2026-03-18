@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modern Robot Learning V2 Bootcamp — Vizuara</title>
-<meta name="description" content="A hands-on bootcamp on modern robot learning: diffusion policies, vision-language-action models, and real-world deployment. By Vizuara.">
+<title>Lecture Notes — Modern Robot Learning V2 Bootcamp</title>
+<meta name="description" content="Lecture notes, interactive slides, and coding notebooks for the Vizuara Modern Robot Learning from Scratch V2 Bootcamp.">
+<link rel="icon" href="/vizuara-logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..1000;1,6..12,300..1000&display=swap" rel="stylesheet">
@@ -14,102 +15,139 @@
   --bg:#faf8f5;--surface:#f5f0e8;--card:#ffffff;
   --accent:#c2785c;--warm:#8b6f4e;--teal:#6a9a5b;
   --blue:#5a7fa5;--purple:#8a6baa;--text:#3a3025;
-  --muted:#8c7e6f;--border:#e5ddd3;--red:#d4543a;
+  --muted:#8c7e6f;--border:#e5ddd3;
 }
 html{scroll-behavior:smooth}
 body{
   font-family:'Nunito Sans',system-ui,sans-serif;
   background:var(--bg);color:var(--text);
   line-height:1.6;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
 }
-h1,h2,h3{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
+h1,h2,h3,h4{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
 
 /* ── NAV ── */
 nav{
   position:sticky;top:0;z-index:100;
   background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border);
-  padding:0.75rem 2rem;display:flex;align-items:center;gap:0.75rem;
 }
-nav img{height:28px;opacity:0.85}
-nav span{font-family:'Caveat',cursive;font-size:1.15rem;color:var(--warm);font-weight:600}
+.nav-inner{
+  max-width:1080px;margin:0 auto;
+  padding:0.75rem 2rem;display:flex;align-items:center;justify-content:space-between;
+}
+.nav-left{display:flex;align-items:center;gap:0.75rem}
+.nav-left img{height:28px;opacity:0.85}
+.nav-left span{font-family:'Caveat',cursive;font-size:1.15rem;color:var(--warm);font-weight:600}
+.nav-link{
+  font-size:0.85rem;color:var(--accent);text-decoration:none;font-weight:600;
+  padding:0.4rem 1rem;border:1.5px solid var(--accent);border-radius:8px;
+  transition:background 0.2s,color 0.2s;
+}
+.nav-link:hover{background:var(--accent);color:#fff}
 
-/* ── HERO ── */
-.hero{
-  max-width:860px;margin:0 auto;padding:4rem 2rem 3rem;text-align:center;
+/* ── HEADER ── */
+.header{
+  max-width:1080px;margin:0 auto;padding:3.5rem 2rem 2.5rem;
 }
-.hero h1{font-size:3rem;color:var(--accent);margin-bottom:0.5rem}
-.hero .subtitle{font-size:1.15rem;color:var(--warm);margin-bottom:1.5rem;font-weight:300}
-.hero p{color:var(--muted);max-width:620px;margin:0 auto;font-size:1.02rem}
-.badge{
+.header-top{display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;flex-wrap:wrap}
+.header h1{font-size:2.6rem;color:var(--accent);flex:1;min-width:200px}
+.tag{
   display:inline-block;background:var(--surface);color:var(--warm);
-  font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-  padding:0.3rem 0.9rem;border-radius:999px;margin-bottom:1rem;border:1px solid var(--border);
+  font-family:'Nunito Sans',sans-serif;
+  font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  padding:0.3rem 0.75rem;border-radius:6px;border:1px solid var(--border);
+  white-space:nowrap;margin-top:0.6rem;
 }
-
-/* ── SECTION ── */
-section{max-width:960px;margin:0 auto;padding:0 2rem 4rem}
-section h2{font-size:2rem;color:var(--warm);margin-bottom:1.5rem;text-align:center}
+.header p{color:var(--muted);max-width:680px;font-size:0.95rem}
+.divider{
+  max-width:1080px;margin:0 auto;padding:0 2rem;
+}
+.divider hr{border:none;border-top:1px solid var(--border)}
 
 /* ── LECTURE GRID ── */
-.grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;
-}
+.lectures{max-width:1080px;margin:0 auto;padding:2rem 2rem 3rem}
+.lectures h2{font-size:1.8rem;color:var(--warm);margin-bottom:1.25rem}
+.grid{display:grid;grid-template-columns:1fr;gap:1.25rem}
 .card{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  overflow:hidden;transition:transform 0.25s,box-shadow 0.25s;
-  display:flex;flex-direction:column;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;
+  display:grid;grid-template-columns:220px 1fr;
+  text-decoration:none;color:inherit;
 }
-.card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(58,48,37,0.1)}
-.card-banner{
-  height:160px;display:flex;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(58,48,37,0.1)}
+.card-thumb{
+  background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;min-height:160px;
 }
-.card-banner svg{width:80px;height:80px;opacity:0.7}
-.card-body{padding:1.25rem 1.5rem 1.5rem;flex:1;display:flex;flex-direction:column}
+.card-thumb img{width:100%;height:100%;object-fit:cover}
+.card-body{padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center}
+.card-meta{
+  display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;flex-wrap:wrap;
+}
 .card-num{
-  font-family:'Caveat',cursive;font-size:0.85rem;color:var(--accent);font-weight:700;
-  letter-spacing:0.04em;margin-bottom:0.25rem;
+  font-family:'Caveat',cursive;font-size:0.95rem;color:var(--accent);font-weight:700;
 }
-.card-body h3{font-size:1.4rem;color:var(--text);margin-bottom:0.5rem;font-family:'Caveat',cursive}
-.card-body p{color:var(--muted);font-size:0.9rem;flex:1}
-.card-link{
-  display:inline-flex;align-items:center;gap:0.35rem;
-  margin-top:1rem;font-size:0.88rem;font-weight:600;color:var(--accent);
-  text-decoration:none;transition:gap 0.2s;
+.card-date{font-size:0.75rem;color:var(--muted)}
+.card-body h3{
+  font-size:1.5rem;color:var(--text);margin-bottom:0.35rem;
+  font-family:'Caveat',cursive;
 }
-.card-link:hover{gap:0.6rem}
-.card-link svg{width:16px;height:16px}
-
-/* Banner colours per lecture */
-.banner-1{background:linear-gradient(135deg,#f5ede4 0%,#ecddd0 100%)}
-.banner-2{background:linear-gradient(135deg,#e8efe5 0%,#d5e3cf 100%)}
-.banner-3{background:linear-gradient(135deg,#e5ecf3 0%,#d0dce8 100%)}
-.banner-4{background:linear-gradient(135deg,#ede5f0 0%,#ddd0e8 100%)}
+.card-body p{color:var(--muted);font-size:0.88rem;margin-bottom:0.75rem}
+.card-tags{display:flex;gap:0.4rem;flex-wrap:wrap}
+.card-tags span{
+  background:var(--surface);color:var(--warm);font-size:0.68rem;font-weight:600;
+  padding:0.2rem 0.55rem;border-radius:5px;border:1px solid var(--border);
+}
+.card-arrow{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  margin-top:0.5rem;font-size:0.82rem;font-weight:600;color:var(--accent);
+}
+.card-arrow svg{width:14px;height:14px;transition:transform 0.2s}
+.card:hover .card-arrow svg{transform:translateX(3px)}
 
 /* Coming-soon state */
-.card.soon{opacity:0.55;pointer-events:none}
-.card.soon .card-link{display:none}
+.card.soon{opacity:0.45;pointer-events:none}
+.card.soon .card-arrow{display:none}
 .soon-tag{
   display:inline-block;background:var(--surface);color:var(--muted);
-  font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;
-  padding:0.2rem 0.6rem;border-radius:999px;margin-top:1rem;border:1px solid var(--border);
+  font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  padding:0.2rem 0.55rem;border-radius:5px;margin-top:0.5rem;border:1px solid var(--border);
 }
+
+/* ── RESOURCES ── */
+.resources{max-width:1080px;margin:0 auto;padding:0 2rem 3rem}
+.resources h2{font-size:1.8rem;color:var(--warm);margin-bottom:1rem}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+.res-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.25rem;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.res-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
+.res-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.res-card h4{font-size:1.15rem;color:var(--text);margin-bottom:0.25rem}
+.res-card p{color:var(--muted);font-size:0.82rem}
 
 /* ── FOOTER ── */
 footer{
-  text-align:center;padding:2rem;color:var(--muted);font-size:0.82rem;
+  margin-top:auto;
+  text-align:center;padding:1.5rem 2rem;color:var(--muted);font-size:0.78rem;
   border-top:1px solid var(--border);
 }
 footer a{color:var(--accent);text-decoration:none}
 footer a:hover{text-decoration:underline}
 
 /* ── RESPONSIVE ── */
-@media(max-width:540px){
-  .hero h1{font-size:2.2rem}
-  .hero{padding:3rem 1.25rem 2rem}
-  section{padding:0 1.25rem 3rem}
-  nav{padding:0.6rem 1.25rem}
+@media(max-width:640px){
+  .header h1{font-size:2rem}
+  .header{padding:2.5rem 1.25rem 1.5rem}
+  .lectures,.resources,.divider{padding-left:1.25rem;padding-right:1.25rem}
+  .card{grid-template-columns:1fr}
+  .card-thumb{height:180px}
+  nav .nav-inner{padding:0.6rem 1.25rem}
+  .res-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -117,43 +155,52 @@ footer a:hover{text-decoration:underline}
 
 <!-- Nav -->
 <nav>
-  <img src="/vizuara-logo.png" alt="Vizuara">
-  <span>Modern Robot Learning V2</span>
+  <div class="nav-inner">
+    <div class="nav-left">
+      <img src="/vizuara-logo.png" alt="Vizuara">
+      <span>Modern Robot Learning V2</span>
+    </div>
+    <a href="https://robotlearningmastery.vizuara.ai" class="nav-link" target="_blank" rel="noopener">Bootcamp Home</a>
+  </div>
 </nav>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="badge">Free &amp; Open-Source Bootcamp</div>
-  <h1>Modern Robot Learning</h1>
-  <p class="subtitle">From Scratch, V2 Bootcamp</p>
-  <p>A hands-on journey through the algorithms powering today's smartest robots &mdash; diffusion policies, vision-language-action models, and real-world deployment on the SO-101 arm. Every lecture comes with interactive slides, coding notebooks, and 3D visualizations.</p>
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <h1>Lecture Notes</h1>
+    <div class="tag">Enrolled Students</div>
+  </div>
+  <p>Interactive slides, component animations, coding notebooks, and 3D visualizations for each lecture of the Modern Robot Learning from Scratch V2 Bootcamp.</p>
 </div>
 
+<div class="divider"><hr></div>
+
 <!-- Lectures -->
-<section>
+<div class="lectures">
   <h2>Lectures</h2>
   <div class="grid">
 
-    <!-- Lecture 1 — Diffusion Policy -->
-    <a href="/lecture-1/" class="card" style="text-decoration:none;color:inherit">
-      <div class="card-banner banner-1">
-        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Diffusion noise → trajectory icon -->
-          <circle cx="18" cy="60" r="4" fill="#c2785c" opacity="0.6"/>
-          <circle cx="30" cy="50" r="3" fill="#c2785c" opacity="0.5"/>
-          <circle cx="24" cy="38" r="3.5" fill="#c2785c" opacity="0.4"/>
-          <circle cx="38" cy="30" r="3" fill="#c2785c" opacity="0.35"/>
-          <path d="M42 28 Q50 22 58 18" stroke="#c2785c" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
-          <circle cx="58" cy="18" r="5" fill="#c2785c" opacity="0.9"/>
-          <path d="M18 60 C24 52 28 44 34 34 C38 28 46 22 58 18" stroke="#c2785c" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.3"/>
-        </svg>
+    <!-- Lecture 1 -->
+    <a href="/lecture-1/" class="card">
+      <div class="card-thumb">
+        <img src="/lecture-1-thumb.png" alt="Diffusion Policy architecture overview">
       </div>
       <div class="card-body">
-        <div class="card-num">Lecture 1</div>
+        <div class="card-meta">
+          <span class="card-num">Lecture 1</span>
+          <span class="card-date">March 21, 2026</span>
+        </div>
         <h3>Diffusion Policy</h3>
-        <p>Visuo-motor policy learning via action diffusion &mdash; denoise Gaussian noise into precise robot trajectories.</p>
-        <span class="card-link">
-          Open lecture
+        <p>Visuo-motor policy learning via action diffusion. Trace a complete forward pass from camera image to robot joint commands.</p>
+        <div class="card-tags">
+          <span>ResNet18</span>
+          <span>Spatial Softmax</span>
+          <span>1D U-Net</span>
+          <span>FiLM</span>
+          <span>DDPM</span>
+        </div>
+        <span class="card-arrow">
+          Open notes
           <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
       </div>
@@ -161,27 +208,54 @@ footer a:hover{text-decoration:underline}
 
     <!-- Lecture 2 — Coming Soon -->
     <div class="card soon">
-      <div class="card-banner banner-2">
-        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="28" width="40" height="28" rx="4" stroke="#6a9a5b" stroke-width="2" opacity="0.5"/>
-          <circle cx="40" cy="42" r="8" stroke="#6a9a5b" stroke-width="2" opacity="0.5"/>
-          <path d="M32 22 L40 16 L48 22" stroke="#6a9a5b" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+      <div class="card-thumb" style="background:linear-gradient(135deg,#eef2ee 0%,#dde6d8 100%)">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6a9a5b" stroke-width="1.5" stroke-linecap="round" opacity="0.4">
+          <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
         </svg>
       </div>
       <div class="card-body">
-        <div class="card-num">Lecture 2</div>
+        <div class="card-meta"><span class="card-num">Lecture 2</span></div>
         <h3>Coming Soon</h3>
-        <p>The next lecture is in the works. Stay tuned!</p>
-        <span class="soon-tag">Coming soon</span>
+        <p>Next lecture notes will appear here after the session.</p>
+        <span class="soon-tag">Upcoming</span>
       </div>
     </div>
 
   </div>
-</section>
+</div>
+
+<!-- Resources -->
+<div class="divider"><hr></div>
+<div class="resources">
+  <h2>Resources</h2>
+  <div class="res-grid">
+    <a href="https://github.com/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp" class="res-card" target="_blank" rel="noopener">
+      <div class="res-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      </div>
+      <h4>GitHub Repository</h4>
+      <p>Source code for all slides, notebooks, and build scripts.</p>
+    </a>
+    <a href="https://robotlearningmastery.vizuara.ai" class="res-card" target="_blank" rel="noopener">
+      <div class="res-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <h4>Bootcamp Home</h4>
+      <p>Full curriculum, enrollment, instructor profiles, and FAQs.</p>
+    </a>
+    <a href="https://vizuara.ai" class="res-card" target="_blank" rel="noopener">
+      <div class="res-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <h4>Vizuara</h4>
+      <p>AI education platform by Vizuara AI Labs.</p>
+    </a>
+  </div>
+</div>
 
 <!-- Footer -->
 <footer>
-  Built with care by <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara</a> &middot; Open-source on <a href="https://github.com/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp" target="_blank" rel="noopener">GitHub</a>
+  <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara AI Labs</a> &middot; Modern Robot Learning from Scratch V2 Bootcamp
 </footer>
 
 </body>

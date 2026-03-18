@@ -8,8 +8,9 @@ mkdir -p dist
 echo "==> Copying homepage"
 cp -r site/* dist/
 
-echo "==> Copying logo for homepage"
+echo "==> Copying shared assets for homepage"
 cp lecture-1-diffusion-policy/public/vizuara-logo.png dist/
+cp site/lecture-1-thumb.png dist/
 
 echo "==> Building Lecture 1 (Slidev)"
 cd lecture-1-diffusion-policy

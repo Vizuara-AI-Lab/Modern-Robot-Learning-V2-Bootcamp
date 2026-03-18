@@ -1623,7 +1623,7 @@ We use **ResNet18** — a CNN pretrained on ImageNet (1.2M images).
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:46vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene01_CNNFilterSliding.mp4" type="video/mp4">
+  <source src="/animations/Scene01_CNNFilterSliding.mp4" type="video/mp4">
 </video>
 
 <a href="/notebooks/Component_ResNet18.ipynb" download class="card text-sm px-4 py-2 text-center" style="text-decoration:none;color:var(--claude-text);">
@@ -1695,7 +1695,7 @@ This is where SpatialSoftmax comes in...
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:46vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene02_ResNet18Pipeline.mp4" type="video/mp4">
+  <source src="/animations/Scene02_ResNet18Pipeline.mp4" type="video/mp4">
 </video>
 
 <a href="/notebooks/Component_ResNet18.ipynb" download class="card text-sm px-4 py-2 text-center" style="text-decoration:none;color:var(--claude-text);">
@@ -1765,7 +1765,7 @@ $$512 \times 3 \times 3 \rightarrow 32 \times 2 = 64$$
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:46vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene03_GAPvsSpatialSoftmax.mp4" type="video/mp4">
+  <source src="/animations/Scene03_GAPvsSpatialSoftmax.mp4" type="video/mp4">
 </video>
 
 <a href="/notebooks/Component_SpatialSoftmax.ipynb" download class="card text-sm px-4 py-2 text-center" style="text-decoration:none;color:var(--claude-text);">
@@ -2074,7 +2074,7 @@ The embedding gives the network this context.
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:46vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene04_TimestepEmbedding.mp4" type="video/mp4">
+  <source src="/animations/Scene04_TimestepEmbedding.mp4" type="video/mp4">
 </video>
 
 <a href="/notebooks/Component_Timestep_Embedding.ipynb" download class="card text-sm px-4 py-2 text-center" style="text-decoration:none;color:var(--claude-text);">
@@ -2327,7 +2327,7 @@ This is why U-Nets dominate in diffusion models — they preserve both global st
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:46vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene05_1DUNetFlow.mp4" type="video/mp4">
+  <source src="/animations/Scene05_1DUNetFlow.mp4" type="video/mp4">
 </video>
 
 <a href="/notebooks/Component_1D_UNet.ipynb" download class="card text-sm px-4 py-2 text-center" style="text-decoration:none;color:var(--claude-text);">
@@ -2580,7 +2580,7 @@ It's like adjusting the volume and tone on every instrument in an orchestra, not
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:46vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene06_FiLMConditioning.mp4" type="video/mp4">
+  <source src="/animations/Scene06_FiLMConditioning.mp4" type="video/mp4">
 </video>
 
 <a href="/notebooks/Component_FiLM.ipynb" download class="card text-sm px-4 py-2 text-center" style="text-decoration:none;color:var(--claude-text);">
@@ -2936,7 +2936,7 @@ for batch in dataloader:
 <div class="flex flex-col items-center gap-4">
 
 <video controls class="rounded-lg" style="max-height:55vh; max-width:100%;">
-  <source src="/viz/diffusion-policy-components/animations/Scene07_TrainingLoop.mp4" type="video/mp4">
+  <source src="/animations/Scene07_TrainingLoop.mp4" type="video/mp4">
 </video>
 
 </div>
@@ -3037,7 +3037,7 @@ Watch noise transform into a trajectory, then see the SO-101 arm execute it.
 
 </div>
 
-<iframe src="/viz/diffusion-policy-3d/index.html" class="w-full rounded-lg mt-1" style="height:72vh;border:none;" />
+<iframe src="https://diffusion-policy-3d-viz.vercel.app/" class="w-full rounded-lg mt-1" style="height:72vh;border:none;" />
 
 ---
 
@@ -3049,7 +3049,7 @@ Trace ONE example through every step of the training pipeline with real numbers.
 
 </div>
 
-<iframe src="/viz/diffusion-policy-training/index.html" class="w-full rounded-lg mt-1" style="height:72vh;border:none;" />
+<iframe src="https://diffusion-policy-training.vercel.app/" class="w-full rounded-lg mt-1" style="height:72vh;border:none;" />
 
 ---
 
@@ -3061,7 +3061,7 @@ Tea-pouring images, SVG trajectory overlays, and a noise slider.
 
 </div>
 
-<iframe src="/viz/diffusion-policy-visualizer/index.html" class="w-full rounded-lg mt-1" style="height:72vh;border:none;" />
+<iframe src="https://diffusion-policy-visualizer.vercel.app/" class="w-full rounded-lg mt-1" style="height:72vh;border:none;" />
 
 ---
 
