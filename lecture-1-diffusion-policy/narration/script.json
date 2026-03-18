@@ -1,0 +1,457 @@
+[
+  {
+    "slide": 1,
+    "title": "Title Slide",
+    "narration": "Welcome to the Vizuara Modern Robot Learning from Scratch Bootcamp, Version Two. Today's lecture is all about Diffusion Policy — one of the most powerful ideas in modern robotics. By the end of this session, you'll understand how to train a robot to perform complex manipulation tasks, starting from nothing but pure random noise. Let's dive in."
+  },
+  {
+    "slide": 2,
+    "title": "What You'll Learn Today",
+    "narration": "Here's our roadmap for today. We have four major parts. In Part One, we'll build up diffusion from scratch — learning how to generate anything from pure noise, using Batman as our running example. In Part Two, we make the critical leap: instead of generating images, we generate robot actions. This is the core insight behind Diffusion Policy. Part Three is where we go deep into every component of the architecture — the vision encoder, the U-Net, FiLM conditioning, and the receding horizon control loop. No black boxes, no hand-waving. And finally, in Part Four, you'll build it yourself with hands-on Colab notebooks. Let's start with the fundamentals."
+  },
+  {
+    "slide": 3,
+    "title": "Part 1: Diffusion — Generating from Pure Noise",
+    "narration": "Part One. Diffusion — Generating from Pure Noise. This is where we build the foundation that everything else rests on."
+  },
+  {
+    "slide": 4,
+    "title": "The Big Idea: Learning to Denoise",
+    "narration": "Here's the big idea behind diffusion. Imagine you have a photo of Batman. The process works in three steps. First, you destroy the image — you gradually add noise, step by step, until the photo becomes pure static. Nothing recognizable remains. Second, you learn — you train a neural network to reverse this destruction. Given a noisy image, it learns to predict what noise was added. And third, you create — you start from pure static, from random noise, and you run the denoising process. The network removes noise step by step, and a brand new image emerges. This is the essence of diffusion. Destruction is easy — anyone can add noise. But if you learn to undo that destruction, you gain the ability to create from scratch. That's a profound idea."
+  },
+  {
+    "slide": 5,
+    "title": "The Forward Process: Destroying Batman",
+    "narration": "Let's look at the forward process more concretely. We take our Batman image and we progressively add Gaussian noise. At each step, the image gets a little noisier, a little more degraded. Early on, you can still clearly see Batman. In the middle, you get a ghostly, blurry version. And by the end, it's pure static — completely indistinguishable from random noise. The critical point here is that this destruction is controlled and mathematical. At each step, we know exactly how much noise we added. This precise control is what makes the reverse process learnable."
+  },
+  {
+    "slide": 6,
+    "title": "What IS Gaussian Noise?",
+    "narration": "Before we go further, let's make sure we understand what Gaussian noise actually is. Think about a thermometer. The true temperature is twenty-five degrees Celsius. But your thermometer isn't perfect — sometimes it reads twenty-four point three, sometimes twenty-five point eight, sometimes twenty-five point one. These measurement errors follow a bell curve, which is the Gaussian distribution. Most errors are small, and big errors are rare. That's all Gaussian means — bell-curve-shaped randomness. Now, we can control how wild this randomness is. With a small variance, the errors are gentle — values stay close to the center. With a large variance, the errors are aggressive — values spread out much more. This distinction between small and large variance is exactly what drives the diffusion process."
+  },
+  {
+    "slide": 7,
+    "title": "The Two Numbers That Define Gaussian Noise",
+    "narration": "Every Gaussian distribution is fully defined by just two numbers. The mean, mu, which tells you where the center is — for noise, we usually set this to zero, meaning there's no systematic bias. And the variance, sigma squared, which tells you how spread out the values are. Small variance means gentle fluctuations, large variance means aggressive, wild fluctuations. When we write epsilon sampled from N of zero, I — that's our notation for saying: epsilon is a random sample from a Gaussian with zero mean and unit variance. For diffusion, we add this kind of noise to our data, gradually increasing the amount from timestep zero all the way to timestep T."
+  },
+  {
+    "slide": 8,
+    "title": "The Forward Process: The Math",
+    "narration": "Now let's see the actual equation. The formula that describes exactly how we add noise at any timestep t is: x sub t equals the square root of alpha bar t times x zero, plus the square root of one minus alpha bar t times epsilon. Let's break this down. x zero is your original clean data — in our case, Batman. x sub t is the noisy version at step t. Epsilon is pure random noise. And alpha bar t is the key — it controls the signal-to-noise ratio. When alpha bar t is close to one, at early timesteps, the noisy version is almost all signal — you can still see Batman clearly. When alpha bar t approaches zero, at late timesteps, the signal is almost completely gone — it's nearly all noise. So this single equation lets us jump to any noise level directly, without computing every intermediate step."
+  },
+  {
+    "slide": 9,
+    "title": "Forward Process: A Concrete Example",
+    "narration": "Let's plug in real numbers to make this concrete. Say alpha bar at timestep fifty equals zero point three. Then x fifty equals square root of zero point three — that's about zero point five five — times x zero, plus square root of zero point seven — about zero point eight four — times epsilon. In plain English: at timestep fifty, the noisy image is fifty-five percent original Batman mixed with eighty-four percent strength noise. The noise is already dominating the signal. And here's the beautiful thing — this same formula works on robot trajectories too. Instead of a noisy Batman image, you get a noisy robot trajectory — the smooth arc of a pour-the-tea motion gets progressively corrupted into random jittering."
+  },
+  {
+    "slide": 10,
+    "title": "The Noise Schedule",
+    "narration": "How fast do we add noise? This is controlled by the noise schedule — the curve that defines how alpha bar t changes from one down to zero. A linear schedule adds noise at a constant rate. But Diffusion Policy uses something called squared cosine cap v2 — a cosine schedule. This schedule preserves the signal for longer before a rapid drop-off near the end. Think of it like slowly dimming the lights versus suddenly flipping them off. The cosine schedule gives the network more time to learn from partially corrupted data, which produces higher quality results."
+  },
+  {
+    "slide": 11,
+    "title": "The Reverse Process: Learning to Denoise",
+    "narration": "Now the magic: the reverse process. The forward process destroys — the reverse process creates. What does the network actually learn? Given noisy data x sub t and the timestep t, it predicts the noise epsilon. The notation is epsilon hat equals epsilon theta of x t and t. In words: I see this noisy mess, and I'm going to predict what noise was added. The training loss is beautifully simple — just mean squared error between the real noise and the predicted noise. That's it. For each training step: pick a clean image, pick a random timestep, add noise, ask the network to predict the noise, compute MSE, and backpropagate. Once the network can accurately predict noise, we can subtract it step by step — going from pure static all the way back to a clean image."
+  },
+  {
+    "slide": 12,
+    "title": "Why Does This Work? Multi-Scale Learning",
+    "narration": "Why does this work so well? The key insight is multi-scale learning. At easy timesteps, near t equals zero, the data is almost clean. The network learns fine details — like that speckle on Batman's cape? That's noise, remove it. At medium timesteps, around t equals fifty, there's significant noise. The network learns structure — there's a humanoid shape with a pointy head. At hard timesteps, near t equals one hundred, the data is almost pure noise. The network essentially hallucinates from nothing — this blob could become Batman. By training across all timesteps, the network learns to generate at every scale — from coarse global structure down to fine details. This is fundamentally why diffusion models are so powerful."
+  },
+  {
+    "slide": 13,
+    "title": "Quiz: Diffusion Basics",
+    "narration": "Let's check our understanding with a quick quiz. Question one: when alpha bar t equals zero, what is x sub t? The answer is x sub t equals epsilon — pure noise, zero signal. The original data is completely gone. Question two: if the model is trained on cats, will it generate dogs from noise? No! It learned to denoise toward cats. Different training data means different outputs. The network's generation is shaped entirely by its training distribution. Question three: why add fresh noise during each denoising step? This maintains stochasticity — different random seeds lead to different valid outputs. This is what gives us multimodality — the ability to generate diverse, varied samples."
+  },
+  {
+    "slide": 14,
+    "title": "Notebook: Explore Diffusion Yourself",
+    "narration": "This is where you get your hands dirty. In the Google Colab notebook, you'll apply the forward process to actual images at different timesteps, visualize the noise schedule, run the reverse process and watch noise become a trajectory in real time, and sample multiple times to see the diversity of outputs. Focus especially on Part three E for the forward and reverse process, and Part six for the denoising visualization. I encourage you to actually pause and play with these cells — the intuition you build here will carry through the entire lecture."
+  },
+  {
+    "slide": 15,
+    "title": "Brainstorming: From Images to Actions",
+    "narration": "Now here's the critical question that bridges everything we've learned to robotics. We can generate images from noise — that's established. But we're here to build robots. What if, instead of generating pixel values, we generated robot joint angles? What would the image be in that analogy? What would the noise be? Take a moment to think about this. It's the most important conceptual leap in this entire lecture."
+  },
+  {
+    "slide": 16,
+    "title": "Part 2: From Images to Robot Actions",
+    "narration": "Part Two. From Images to Robot Actions. Instead of denoising pixels, we're going to denoise motor commands. This is where diffusion meets robotics."
+  },
+  {
+    "slide": 17,
+    "title": "Imagine This Task",
+    "narration": "Let's ground this in a concrete example. Imagine a robot arm holding a teapot, and it needs to pour tea into a cup. The robot sees the scene through a camera. It knows its own joint positions — that's called proprioception. And it needs to output a sequence of motor commands that will execute the pour. The question we're asking is: given what the robot sees, what should it do? Mathematically, we want to learn the probability distribution of actions given observations — p of A sub t given O sub t. This is the fundamental problem of robot policy learning."
+  },
+  {
+    "slide": 18,
+    "title": "The Key Shift: What Are We Generating?",
+    "narration": "Here's the key insight that makes Diffusion Policy work. In image diffusion, x zero is a two-fifty-six by two-fifty-six by three image. Each value is a pixel intensity. We add noise to pixels, and the output is a picture. In our case — Diffusion Policy — x zero is sixteen timesteps times two actions. Each value is a joint angle or position. We add noise to actions, and the output is an executable robot trajectory. Same math. Same training procedure. Same denoising loop. The only difference is what x zero represents — a one-D action sequence instead of a two-D image. This is the elegance of the approach: we didn't invent a new method for robot control. We simply redefined what the diffusion model generates."
+  },
+  {
+    "slide": 19,
+    "title": "Forward Process on Robot Actions",
+    "narration": "What does noisy robot actions actually look like? Take a smooth pour-the-tea trajectory — a graceful arc of joint angles over time. In the forward process, we add noise just like before. The smooth trajectory gets progressively destroyed. By the end, it's just random joint angles — the robot arm would jitter wildly in space. The formula is identical: A sub t equals square root of alpha bar t times A zero plus square root of one minus alpha bar t times epsilon. Noise on actions equals random joint angles equals a robot jittering chaotically."
+  },
+  {
+    "slide": 20,
+    "title": "Reverse Process: From Chaos to a Plan",
+    "narration": "And the reverse process is equally elegant. Starting from random joint angles — pure chaos — we run our trained denoiser step by step. The random noise gradually resolves into a coherent, smooth, executable trajectory. Just like pixels resolve into Batman, joint angles resolve into a pour-the-tea motion. The network has learned the structure of good robot behavior from the training demonstrations."
+  },
+  {
+    "slide": 21,
+    "title": "Why Not Just Use Regression?",
+    "narration": "Now you might ask — why not just use simple regression? Predict the average action and be done with it. This is the multimodality problem, and it's crucial to understand. Imagine a robot that needs to go around an obstacle. It can go left, or it can go right — both are valid paths. If you train with MSE regression, the model learns the average of these two paths, which goes straight through the middle — crashing into the obstacle. The average of two good solutions can be a terrible solution. Diffusion doesn't have this problem. Each denoising run produces one complete, coherent trajectory. Different noise seeds lead to different strategies — sometimes it goes left, sometimes right. Each one individually is valid. This ability to model multimodal distributions is one of the biggest advantages of Diffusion Policy."
+  },
+  {
+    "slide": 22,
+    "title": "Diffusion Policy: Real Robot Results",
+    "narration": "Let's see what this looks like in practice. Diffusion Policy has been tested on a range of real-world robot tasks. Push-T is the two-D pushing task — think of it as the hello world of diffusion policy. Mug flipping involves contact-rich dynamics where the robot needs to flip a mug upright. And sauce pouring and spreading demonstrates deformable object manipulation with multi-step coordination. In all of these, Diffusion Policy significantly outperforms prior methods. And these are real robots, not just simulations."
+  },
+  {
+    "slide": 23,
+    "title": "Robustness: It Recovers from Perturbations",
+    "narration": "One of the most impressive properties of Diffusion Policy is its robustness. Watch what happens when someone physically pushes the object during execution — the policy recovers and completes the task. Why is it so robust? Because the policy re-plans every eight steps. When the world changes, the next plan adapts to the new situation. Action chunking gives smooth execution, while the receding horizon provides adaptability. It's the best of both worlds."
+  },
+  {
+    "slide": 24,
+    "title": "Simulation Benchmark Results",
+    "narration": "Here are the simulation benchmarks where Diffusion Policy was systematically evaluated. The tasks range from simple — like lifting a cube — to extremely challenging — like the tool hang task, which requires precise bimanual coordination. Across the board, Diffusion Policy achieves state-of-the-art or near-state-of-the-art performance. The tool hang result is particularly notable — previous methods could barely solve it, while diffusion policy achieves reliable success."
+  },
+  {
+    "slide": 25,
+    "title": "Quiz: Images → Robot Actions",
+    "narration": "Another quick knowledge check. In Diffusion Policy, what is x zero? It's a sequence of actions — for example, x zero is in R sixteen by two for Push-T, meaning sixteen timesteps of two-D actions. Starting from different random noise, will the policy produce the same trajectory? No — different noise means different trajectories. This is multimodality in action. Why predict sixteen actions instead of just one? Action chunking produces smoother trajectories. Predicting one at a time leads to jittery, uncoordinated motion. And why execute only eight of the sixteen? That's the receding horizon — re-observe after eight steps, then re-plan. It balances smoothness with adaptability."
+  },
+  {
+    "slide": 26,
+    "title": "Part 3: The Full Architecture",
+    "narration": "Part Three. The Full Architecture. This is where we go deep into every component, step by step. No black boxes, no hand-waving. By the end of this section, you'll understand every piece of the puzzle."
+  },
+  {
+    "slide": 27,
+    "title": "Imagine This Task (Architecture)",
+    "narration": "Let's revisit our teapot scenario, but now think about what the system actually needs. The robot needs to see the scene — where is the cup? It needs to know its own arm position — proprioception. It needs to plan a sequence of movements — not just one action, but a full trajectory. And it needs to actually execute those movements smoothly. Our goal is to build a complete system that takes in what the robot sees and outputs a smooth, executable motion plan. Let's trace through every component."
+  },
+  {
+    "slide": 28,
+    "title": "What Does the Robot See?",
+    "narration": "The robot has two types of input. First, a camera image — a single RGB image from a camera looking at the workspace. The resolution is ninety-six by ninety-six pixels, downscaled for computational efficiency. This shows the teapot, the cup, the table, the arm — everything. But here's the problem: ninety-six times ninety-six times three equals twenty-seven thousand six hundred forty-eight numbers. Way too many for direct use. Second, the robot joint state — the robot knows where its own arm is. For Push-T, this is just x and y position, two numbers. For a real six degree-of-freedom arm, it's six joint angles. This is proprioception — the robot's sense of its own body. Together, the camera image plus the joint state form the observation at each timestep."
+  },
+  {
+    "slide": 29,
+    "title": "Visualize: Robot Observations",
+    "narration": "This figure shows exactly what the robot's observation looks like — the camera image on one side, and the joint positions on the other. Together, this is everything the robot knows about the world at any given moment."
+  },
+  {
+    "slide": 30,
+    "title": "What Does the Robot Need to Output?",
+    "narration": "Now, what does the robot output? It outputs actions — motor commands that move its arm. For Push-T, a single action is just x and y — where to move next. For a real arm, it's six target joint angles. But here's the key design choice: we don't predict just one action at a time. That would be like giving driving directions one meter at a time — jittery and uncoordinated. Instead, we predict a whole plan: the next sixteen actions at once. This action trajectory is a matrix — sixteen timesteps by d a dimensions. For Push-T, that's sixteen times two equals thirty-two numbers total. This is what diffusion generates. x zero in our diffusion model is this action trajectory."
+  },
+  {
+    "slide": 31,
+    "title": "Visualize: Action Trajectory Output",
+    "narration": "Here you can see the action trajectory output — sixteen timesteps of motor commands forming the robot's complete movement plan. This is what emerges from the denoising process — a smooth, coordinated sequence of actions."
+  },
+  {
+    "slide": 32,
+    "title": "The Three Horizons",
+    "narration": "The robot operates with three important time windows, and understanding these is crucial. First, the observation horizon T o equals two. The robot looks at the current frame and the previous frame — what just happened? This gives temporal context. Second, the prediction horizon T p equals sixteen. The diffusion model plans the next sixteen timesteps — what's my full plan? Third, the execution horizon T a equals eight. The robot only executes the first eight actions, then re-plans. Trust the plan for zero point eight seconds, then reassess. This three-horizon design is one of the key engineering insights of Diffusion Policy."
+  },
+  {
+    "slide": 33,
+    "title": "Architecture Overview: The Big Picture",
+    "narration": "Here is the complete pipeline — the big picture. We have four major components that we'll zoom into one at a time. Component A is the Vision Encoder — how the robot processes what it sees. Component B is the one-D U-Net denoiser — the core neural network that removes noise from actions. Component C is FiLM Conditioning — the mechanism that tells the denoiser what the robot is looking at. And Component D is the Receding Horizon — the control loop that makes the robot adaptive. Let's start with the vision encoder."
+  },
+  {
+    "slide": 34,
+    "title": "Step A: The Vision Problem",
+    "narration": "The robot sees a ninety-six by ninety-six RGB image. But the denoiser needs a compact vector of numbers. How do we bridge this gap? We could use raw pixels — but that's twenty-seven thousand numbers, mostly irrelevant background and lighting information. We could use handcrafted features — manually detecting edges and colors — but that's too brittle and doesn't generalize. The answer is to learn features. We use a pretrained convolutional neural network to extract meaningful features automatically. The CNN has already been trained on millions of images — it knows how to see. We just repurpose its learned representations."
+  },
+  {
+    "slide": 35,
+    "title": "Visualize: The Vision Problem",
+    "narration": "This visualization compares the three approaches side by side — raw pixels, handcrafted features, and learned features. The learned approach gives us compact, meaningful representations that capture what actually matters in the scene."
+  },
+  {
+    "slide": 36,
+    "title": "What is a CNN? (Quick Refresher)",
+    "narration": "A quick refresher on convolutional neural networks. A CNN learns to detect patterns in images using small filters — typically three by three — that slide across the image. Early layers detect simple things like edges, corners, and colors. Middle layers combine these into textures and shapes. And deep layers recognize high-level objects — like a mug handle or a gripper. We use ResNet eighteen — a CNN pretrained on ImageNet, which has one point two million images. It already knows how to see. We remove the classification head — we don't need it to say this is a dog. We keep the feature extraction layers. The result: a ninety-six by ninety-six by three image goes in, and a five-twelve by three by three feature map comes out. That's five hundred twelve channels, each a three by three spatial grid."
+  },
+  {
+    "slide": 37,
+    "title": "Visualize: CNN Filter Sliding",
+    "narration": "This animation shows how a convolutional filter slides across the image. At each position, it computes a dot product with the local patch, producing one value in the output feature map. It's a simple operation, but stacking many layers of these creates incredibly powerful feature detectors."
+  },
+  {
+    "slide": 38,
+    "title": "ResNet18: From Image to Feature Map",
+    "narration": "Let's trace the teapot image through ResNet eighteen. We start with a ninety-six by ninety-six by three image and get a five-twelve by three by three feature map. What does this mean? Five hundred twelve channels — that's five hundred twelve different pattern detectors. Channel forty-seven might detect round objects. Channel one-eighty-three might detect handle-like shapes. Channel three-oh-one might detect edges on the left. Each channel has a three by three spatial grid showing roughly where its pattern appears. But we have a problem — this five-twelve times three times three equals four thousand six hundred eight numbers. We need to compress this further, ideally to just sixty-four numbers per image. That's where Spatial Softmax comes in."
+  },
+  {
+    "slide": 39,
+    "title": "Visualize: ResNet18 Pipeline",
+    "narration": "This visualization shows the full ResNet eighteen pipeline — from raw pixels through successive convolutional layers to the final feature map. Notice how the spatial resolution shrinks while the number of channels grows, capturing increasingly abstract features."
+  },
+  {
+    "slide": 40,
+    "title": "The Pooling Problem",
+    "narration": "We have five-twelve by three by three features and need to compress them. The standard approach is global average pooling — average all spatial positions for each channel. This gives five-twelve numbers. It tells you channel forty-seven has high activation, meaning there's a round object somewhere. But here's the critical problem for robots: it loses WHERE things are. If the mug is on the left versus the right, the average is the same. But the robot needs to reach to a specific location! Our solution is Spatial Softmax. Instead of averaging, for each channel we find the expected x, y position of its activation. Five-twelve channels get reduced to thirty-two, and each gives an x, y coordinate — thirty-two times two equals sixty-four numbers. Now the robot knows WHERE each feature is. The round object pattern peaks at position zero point three, zero point seven. This spatial information is absolutely crucial for reaching, grasping, and pouring."
+  },
+  {
+    "slide": 41,
+    "title": "Visualize: GAP vs SpatialSoftmax",
+    "narration": "This comparison makes it clear. Global average pooling on the left — it tells you what features exist but not where. Spatial Softmax on the right — it tells you both what and where. For a robot that needs to reach to specific locations in space, preserving that positional information is everything."
+  },
+  {
+    "slide": 42,
+    "title": "SpatialSoftmax: How It Works",
+    "narration": "Here's how Spatial Softmax works step by step. We start with the five-twelve by three by three feature map from ResNet. First, we add a convolutional layer that reduces from five-twelve to thirty-two channels — Conv two-D from five-twelve to thirty-two. Now we have thirty-two feature maps, each three by three. For each of the thirty-two channels, we apply softmax over the three by three grid, converting raw activations into probabilities. Then we compute the expected x, y position — the weighted average of the grid coordinates using these probabilities. This gives one x, y coordinate per channel. Thirty-two keypoints times two coordinates equals sixty-four floating point numbers per image. And since we look at two frames — the current frame and the previous frame — we get one-twenty-eight visual features total."
+  },
+  {
+    "slide": 43,
+    "title": "Example: SpatialSoftmax Calculation",
+    "narration": "Let's trace real numbers through this. Take a three by three feature map for one channel. The raw activations have a peak of two point five at position one, one — the center. After applying softmax, this becomes a probability distribution — the peak gets forty-six percent of the mass. The weighted average gives us keypoint coordinates of zero point five two, zero point four seven — very close to the center where the peak was, but it's a soft, differentiable estimate. This differentiability is important — it means we can backpropagate through this operation during training."
+  },
+  {
+    "slide": 44,
+    "title": "SpatialSoftmax: What the Keypoints Mean",
+    "narration": "Think of the thirty-two keypoints as thirty-two landmark detectors that the network learns automatically. Keypoint one might track the mug handle position. Keypoint seven might track the cup rim center. Keypoint fifteen might track the robot gripper tip. Keypoint twenty-three might track the table edge. The network learns which landmarks are useful — we don't specify them. When the mug moves from position zero point three, zero point four to zero point five, zero point four, the keypoint coordinates change accordingly. The robot can track objects as they move. And because we process two frames — at t minus one and t — the difference between the keypoints encodes motion information. Is the cup moving? Is the arm swinging? This temporal context is critical for planning."
+  },
+  {
+    "slide": 45,
+    "title": "The Timestep Embedding",
+    "narration": "Remember, diffusion denoises step by step from t equals ninety-nine down to t equals zero. The network needs to know which step it's at — because the denoising strategy should be very different at high noise versus low noise. Why not just feed the number t directly? Because a single number gives the network almost no information to work with. The solution is sinusoidal embedding. We convert the scalar t into a one-twenty-eight dimensional vector using sine and cosine waves at different frequencies. Then we pass this through a small MLP to get the final embedding. The key properties: nearby timesteps get similar embeddings — t equals fifty is close to t equals fifty-one. But distant timesteps get very different embeddings — t equals five is nothing like t equals ninety-five. This lets the network learn completely different behaviors at different noise levels. At t equals ninety-nine, very noisy: ignore details, just find the rough direction. At t equals five, almost clean: fine-tune the exact joint angles."
+  },
+  {
+    "slide": 46,
+    "title": "Visualize: Sinusoidal Timestep Embedding",
+    "narration": "This visualization shows how the sinusoidal embedding converts a simple timestep number into a rich one-twenty-eight dimensional fingerprint. Each dimension oscillates at a different frequency, creating a unique pattern for every timestep."
+  },
+  {
+    "slide": 47,
+    "title": "Example: Timestep Embedding Calculation",
+    "narration": "Let's compute the embedding for t equals fifty with dimension one-twenty-eight. The formula uses sine and cosine at exponentially increasing frequencies. The first few values: dimension zero is sine of fifty divided by one, giving negative zero point two six two. Dimension one is cosine of the same, giving zero point nine six five. And so on with decreasing frequencies. The resulting one-twenty-eight dimensional vector has beautiful properties. The cosine similarity between t equals forty-nine and t equals fifty is about zero point nine eight — very similar, as they should be. But between t equals one and t equals fifty, the similarity drops to about zero point one two. The network gets a rich, unique fingerprint for each timestep."
+  },
+  {
+    "slide": 48,
+    "title": "Building the Conditioning Vector",
+    "narration": "Now we combine everything into one single conditioning vector. Sixty-four floats from the image at t minus one, plus sixty-four floats from the image at t, plus two floats for the robot state at t minus one, plus two floats for the robot state at t, plus one-twenty-eight floats from the timestep embedding. That gives us a total of two hundred sixty dimensions. This two-sixty dimensional vector is the complete context. It tells the denoiser everything it needs to know: what the robot sees, where the robot is, and what noise level to denoise at. It's a remarkably compact representation of the entire situation."
+  },
+  {
+    "slide": 49,
+    "title": "Example: The 260 Values, Unpacked",
+    "narration": "Let's unpack what those two hundred sixty values actually contain. The first sixty-four are image features from the previous frame — numbers like zero point three one, negative zero point one two, zero point eight five. The next sixty-four are from the current frame — very similar but slightly different, reflecting the small changes between frames. Then two values for the previous robot position — say zero point four five, zero point six two. Two values for the current position — zero point four seven, zero point six three. And finally one-twenty-eight values from the timestep embedding. Notice something important: the image features change slowly between frames — the scene barely moves in zero point one seconds. But the state values change more noticeably. That difference between consecutive values encodes motion — direction and speed — which is critical for planning."
+  },
+  {
+    "slide": 50,
+    "title": "Brainstorming: The Conditioning Vector",
+    "narration": "Let's pause and think about a few design questions. Why two images? What information does the time difference give us? It gives us motion — we can infer velocity and direction from the change between frames. Why a one-twenty-eight dimensional timestep embedding instead of just the number t? Because the network needs a rich representation to learn different denoising strategies at different noise levels. And if we had three cameras instead of one, how would the two-sixty change? We'd add another sixty-four features per frame per camera. Good questions to ponder."
+  },
+  {
+    "slide": 51,
+    "title": "Step B: We Need a Denoiser",
+    "narration": "We have our two-sixty dimensional conditioning vector. Now we need the actual denoiser — the neural network that takes noisy actions and predicts the noise. The input is a noisy action trajectory: sixteen timesteps times two dimensions equals thirty-two numbers. Plus our two-sixty dimensional conditioning vector. The output is the predicted noise: also sixteen timesteps times two dimensions — thirty-two numbers. Same shape as the input. For every noisy action value, the network predicts how much noise was added. What architecture do we need? Something that takes a sequence of sixteen timesteps as input, outputs a sequence of the same length, can be conditioned on external information, and produces smooth outputs. The answer is a one-D U-Net."
+  },
+  {
+    "slide": 52,
+    "title": "Visualize: Denoiser Input/Output",
+    "narration": "This diagram shows the denoiser's input and output clearly. Noisy actions go in, sixteen by two. Predicted noise comes out, also sixteen by two. Same shape, but completely different meaning — input is corrupted trajectory, output is the estimated corruption."
+  },
+  {
+    "slide": 53,
+    "title": "What is a U-Net?",
+    "narration": "A U-Net is an encoder-decoder architecture with skip connections, and it's shaped like the letter U. The encoder compresses the input sequence, finding high-level patterns. The bottleneck is the smallest representation. The decoder expands back to full resolution. And the skip connections — the arrows across the U — copy detailed information directly from the encoder to the decoder. Without skip connections, the bottleneck would lose fine detail, and the output would be imprecise. With skip connections, both global structure and local detail are preserved. This is why U-Nets dominate in diffusion models — they're exceptionally good at producing outputs that match the input resolution while capturing patterns at multiple scales."
+  },
+  {
+    "slide": 54,
+    "title": "Visualize: U-Net Encoder-Decoder",
+    "narration": "This animation shows the U-Net in action. Watch how the data flows down through the encoder, getting compressed at each level, through the bottleneck, and back up through the decoder. The skip connections carrying information across are the key architectural innovation."
+  },
+  {
+    "slide": 55,
+    "title": "Why 1D, Not 2D?",
+    "narration": "In image diffusion, the U-Net uses two-D convolutions that slide over height and width. But our data is fundamentally different. Images have two spatial dimensions. Our action trajectories have one temporal dimension. So we use one-D convolutions that slide along time. The input is rearranged to batch by two channels by sixteen time positions. The convolutions capture temporal locality — action at time five is related to actions at time four and six, but not especially to action at time one. This is exactly the right inductive bias for sequential motor commands."
+  },
+  {
+    "slide": 56,
+    "title": "Visualize: 1D vs 2D Convolutions",
+    "narration": "This comparison makes the distinction clear. Two-D convolutions for images slide in both height and width. One-D convolutions for trajectories slide only along time. The right dimensionality for the right kind of data."
+  },
+  {
+    "slide": 57,
+    "title": "The 1D U-Net Architecture",
+    "narration": "Here's the concrete architecture. The input is two channels, sixteen timesteps — our raw noisy actions. Down block one expands to five-twelve channels, keeping sixteen timesteps. Down block two goes to ten-twenty-four channels and downsamples to eight timesteps. Down block three reaches twenty-forty-eight channels at four timesteps. Then we expand back: up block one to ten-twenty-four channels at eight timesteps with a skip connection. Up block two to five-twelve channels at sixteen timesteps with another skip. And the output is two channels, sixteen timesteps — our predicted noise, same shape as the input. It's a surprisingly large network — twenty-forty-eight channels at the bottleneck — but this capacity is needed to learn the complex mapping from noisy trajectories to predicted noise."
+  },
+  {
+    "slide": 58,
+    "title": "Why CNNs for Robot Trajectories?",
+    "narration": "The choice of one-D CNNs has a powerful inductive bias for robot actions. A convolution with kernel size five looks at five consecutive timesteps at once. This naturally produces outputs that are consistent with their neighbors — in other words, smooth trajectories. A sudden jump from action zero point three to five point seven at the next timestep would be physically dangerous for a real robot. The CNN's locality bias prevents this. Compare this to a fully connected network, which treats step one and step sixteen equally — no notion of temporal locality, potentially producing jagged outputs. Or a Transformer, which attends to all timesteps equally — powerful, but without a built-in smoothness bias. The paper tested both, and the CNN performed better on most tasks."
+  },
+  {
+    "slide": 59,
+    "title": "Visualize: CNN Smoothness Bias",
+    "narration": "This figure illustrates the smoothness bias. Because each output depends on its local neighbors through the convolutional window, the network naturally produces trajectories that flow smoothly from one timestep to the next. No special regularization needed — it's baked into the architecture."
+  },
+  {
+    "slide": 60,
+    "title": "Step C: The Conditioning Problem",
+    "narration": "Now, the U-Net takes noisy actions and outputs predicted noise. But there's a critical problem. Without conditioning, the U-Net sees sixteen by two noisy actions and the timestep, but has no idea what the robot is looking at. It would generate random motions with no purpose — denoise toward what? With conditioning, the U-Net also receives our two-sixty dimensional vector encoding the camera view and robot state. Now it knows: the cup is on the left, the robot arm is here — so it denoises toward a trajectory that reaches the cup. How do we inject this information? We could concatenate it to the input, but there's a much more powerful approach: FiLM."
+  },
+  {
+    "slide": 61,
+    "title": "Visualize: Blind vs Conditioned Denoising",
+    "narration": "This comparison is stark. On the left, blind denoising — the network plans in the dark, producing random, purposeless trajectories. On the right, conditioned denoising — the network knows where the objects are and produces targeted, task-relevant trajectories. Conditioning is what transforms a random noise remover into an intelligent robot planner."
+  },
+  {
+    "slide": 62,
+    "title": "FiLM: Feature-wise Linear Modulation",
+    "narration": "FiLM stands for Feature-wise Linear Modulation, and it's an elegant way to condition a neural network on external information. The idea is simple but powerful. At every layer of the U-Net, we modify the hidden features with a scale and shift: h prime equals gamma times h plus beta. H is the hidden activation — what the U-Net has computed so far. Gamma is the scale factor, and beta is the shift factor. Both gamma and beta are produced by a small linear layer that takes our two-sixty dimensional conditioning vector as input. Why is this better than concatenation? Concatenation adds information only at the input. FiLM directly scales and shifts every feature at every layer. Scale can amplify relevant features, suppress irrelevant ones, and the shift can bias the computation. It's like adjusting the volume and tone on every instrument in an orchestra, rather than just adding another instrument."
+  },
+  {
+    "slide": 63,
+    "title": "Visualize: FiLM Conditioning",
+    "narration": "This animation shows FiLM in action — watch how the scale and shift parameters modulate the features at each U-Net layer. The conditioning vector influences every level of processing, not just the input."
+  },
+  {
+    "slide": 64,
+    "title": "Example: FiLM Calculation",
+    "narration": "Let's trace real numbers through FiLM at one layer. Say the hidden features are zero point five, negative zero point three, zero point eight, one point two, negative zero point five. The conditioning vector produces gamma values of two, zero point one, one point five, zero, three — and beta values of zero, zero, zero point three, one, negative zero point two. Applying the formula element by element: feature one gets multiplied by two — amplified, it's important. Feature two gets multiplied by zero point one — heavily suppressed, it's irrelevant right now. Feature four gets multiplied by zero and shifted to one — completely replaced with new information. Each gamma and beta value is a learned decision about what information to amplify, suppress, or override, all based on what the robot currently sees."
+  },
+  {
+    "slide": 65,
+    "title": "FiLM: The Teapot Analogy",
+    "narration": "Let me give you an intuitive analogy. Think of the U-Net as a brain trying to plan arm movements. Without FiLM, the brain plans in the dark. Should I move left? Right? It has no idea where the cup is. With FiLM, the camera sees the cup on the left. The FiLM layer boosts the move-left features — gamma greater than one. It suppresses the move-right features — gamma less than one. And it shifts the trajectory toward the correct region. The brain correctly plans to pour into the cup on the left. FiLM is the bridge between perception and action — it's how vision informs motor planning."
+  },
+  {
+    "slide": 66,
+    "title": "Step D: Why Predict 16 but Execute Only 8?",
+    "narration": "Step D: the receding horizon. We predict sixteen actions but only execute eight. Why? Consider the alternative — executing all sixteen. The world might change during those one point six seconds. Someone could move the cup. Actions twelve through sixteen are predictions for over a second in the future — increasingly uncertain. If something goes wrong at step five, the remaining eleven actions are useless. The receding horizon approach: execute the first eight actions — zero point eight seconds of committed motion. Then take a new observation, see what's actually happening now. Generate a fresh sixteen-step plan. Execute the first eight of that new plan. Repeat. This beautifully balances smoothness — eight steps of committed, coordinated motion — with adaptability — frequent re-planning to respond to changes."
+  },
+  {
+    "slide": 67,
+    "title": "The Complete Control Loop",
+    "narration": "Here's the full closed-loop system. Step one, observe: capture camera frames at t minus one and t, read the robot joint state. Step two, encode: run ResNet eighteen plus Spatial Softmax to get one-twenty-eight visual features, concatenate with four state values and one-twenty-eight timestep embedding to get our two-sixty dimensional vector. Step three, denoise: sample random noise — sixteen by two random numbers — and run one hundred denoising steps through the one-D U-Net with FiLM conditioning. The output is a clean action trajectory. Step four, execute: send the first eight actions to the robot motors, wait zero point eight seconds. Step five: go back to step one. This loop runs continuously. Every zero point eight seconds, the robot gets a fresh plan based on what it currently sees. It's a closed-loop reactive system, not an open-loop plan."
+  },
+  {
+    "slide": 68,
+    "title": "Visualize: The Complete Control Loop",
+    "narration": "This diagram shows the complete control loop visually. Observe, encode, denoise, execute eight of sixteen, and repeat. The cycle runs continuously, giving the robot real-time reactivity while maintaining the smoothness of planned trajectories."
+  },
+  {
+    "slide": 69,
+    "title": "Example: One Complete Forward Pass",
+    "narration": "Let's trace one camera frame through the entire pipeline, watching the tensor shapes transform. We start with twenty-seven thousand six hundred forty-eight floating point numbers — the raw camera image. ResNet eighteen compresses this to four thousand six hundred eight. The conv two-D layer reduces to two hundred eighty-eight. Spatial Softmax gives us sixty-four numbers — the keypoint coordinates. Doubling for two frames gives one-twenty-eight. Adding four state values and one-twenty-eight timestep embedding gives our two-sixty dimensional conditioning vector. The FiLM-conditioned U-Net produces thirty-two numbers — our predicted noise. And after denoising, we execute the first eight actions — just sixteen motor commands. From twenty-seven thousand pixels to sixteen motor commands. The network compresses twenty-seven K inputs into the sixteen numbers that actually move the robot. That's the power of a well-designed architecture."
+  },
+  {
+    "slide": 70,
+    "title": "The Training Objective: Beautifully Simple",
+    "narration": "Despite the complex architecture, training is remarkably simple. Here's the training loop in just seven lines of Python. For each batch: get the clean expert actions, pick a random timestep, sample random noise, add noise to the actions using the scheduler, run the noisy actions through the U-Net to predict the noise, compute mean squared error between predicted and actual noise, and backpropagate. That's it. Add noise, predict noise, MSE loss, backprop. The complexity is entirely in the architecture design, not in the training procedure. This simplicity is one of the great virtues of diffusion models."
+  },
+  {
+    "slide": 71,
+    "title": "Visualize: Training Pipeline",
+    "narration": "This animation walks through the training pipeline visually. Expert demonstrations provide clean action trajectories. We corrupt them with noise. The U-Net predicts the noise. MSE loss drives learning. Thousands of iterations of this simple loop produce a policy that can generate smooth, task-relevant trajectories from pure noise."
+  },
+  {
+    "slide": 72,
+    "title": "Quiz: Architecture Deep Dive",
+    "narration": "Final architecture quiz. Why does Spatial Softmax output x, y coordinates instead of just a feature vector? Because robot manipulation requires knowing where objects are in space. Coordinates let the policy reach to specific locations. Average pooling loses this information. The U-Net uses one-D convolutions with kernel size five — what does that mean? Each layer looks at five consecutive timesteps at once, forcing outputs to be consistent with neighbors and producing smooth trajectories. And can you walk through the complete path from camera image to executed action? Ninety-six by ninety-six image through ResNet eighteen, Spatial Softmax gives thirty-two keypoints, concatenate with state and timestep for two-sixty dimensions, FiLM conditions the one-D U-Net, denoise for one hundred steps, get a sixteen-step plan, execute the first eight, re-observe, and repeat."
+  },
+  {
+    "slide": 73,
+    "title": "3D Interactive: The Full Diffusion Policy",
+    "narration": "Now let's see everything come together in this three-D interactive visualization. You can watch noise transform into a smooth trajectory, and then see the SO one-oh-one robot arm actually execute it. This is Diffusion Policy in action — from random noise to coordinated motor behavior."
+  },
+  {
+    "slide": 74,
+    "title": "2D Interactive: Training Walkthrough",
+    "narration": "This interactive training walkthrough lets you trace one concrete example through every step of the training pipeline with real numbers. You can see exactly how the loss decreases and the predicted noise gets closer to the actual noise with each training iteration."
+  },
+  {
+    "slide": 75,
+    "title": "2D Interactive: Diffusion Policy Visualizer",
+    "narration": "And this visualizer lets you explore Diffusion Policy with real scene images, SVG trajectory overlays, and a noise slider. You can manually adjust the noise level and watch the trajectory emerge from chaos. I encourage you to spend some time with each of these interactive tools."
+  },
+  {
+    "slide": 76,
+    "title": "Comparison: Diffusion Policy vs Baselines",
+    "narration": "Let's look at the quantitative comparison. On the Push-T benchmark, a random policy scores about five percent. IBC, the energy-based approach, reaches about sixty percent. BC-RNN, the recurrent approach, gets to about seventy-two percent. And Diffusion Policy with the CNN backbone hits ninety-one percent — the Transformer variant reaches eighty-seven percent. Why does diffusion win? Four reasons. It captures multimodal distributions — no mode averaging. Action chunking prevents jitter. The hundred-step denoising process is highly expressive. And the noise during training acts as a regularizer, preventing overfitting."
+  },
+  {
+    "slide": 77,
+    "title": "Part 4: Hands-On Implementation",
+    "narration": "Part Four. Hands-On Implementation. Now it's your turn to build. You're going to train a Diffusion Policy from scratch on Push-T, and then scale to real robot tasks."
+  },
+  {
+    "slide": 78,
+    "title": "The Simulation Environments",
+    "narration": "Here are the three simulation environments you'll work with across the bootcamp. In week one, Push-T — the two-D pushing task. Your hello world for diffusion policy. Two hundred five expert demonstrations, two-D actions. In week two, ALOHA — bimanual manipulation with fourteen degrees of freedom, dual arms, and real-world teleoperation data. In week three, LIBERO — multi-task with language conditioning. One hundred thirty different tasks, where the policy must understand language instructions. Each environment tests a different capability of Diffusion Policy."
+  },
+  {
+    "slide": 79,
+    "title": "Week 1: What You'll Build",
+    "narration": "Your goal this week: train a working Diffusion Policy on Push-T from scratch using the LeRobot framework. Here's the step-by-step workflow. Step one, load the Push-T dataset — two hundred five expert demos at ten frames per second. Step two, explore the data — visualize observation images, states, and action trajectories. Step three, build the architecture — ResNet eighteen, Spatial Softmax, one-D U-Net with FiLM. Step four, train for five thousand steps — about one to two hours on a T4 GPU. Step five, evaluate the trained policy in the simulator. Step six, visualize the denoising process — watch noise become a trajectory. Step seven, test multimodality — same observation, twenty different trajectories. And step eight, run ablation experiments — break things on purpose to understand why they work. Everything is in a single end-to-end Colab notebook. Just run top to bottom."
+  },
+  {
+    "slide": 80,
+    "title": "The PushT Task: Your Training Ground",
+    "narration": "Let me tell you why Push-T is the perfect training ground. It looks simple — a blue circle pushing a T-block onto a green target. But it's deceptively hard. There are multiple valid strategies — approach from the left, from the right, from above. MSE regression averages these and crashes into the block. This is where diffusion shines. The task requires precise spatial reasoning — the T-block must be rotated and positioned exactly, which needs Spatial Softmax to provide accurate keypoint locations. And it requires temporal coordination — a sequence of carefully timed pushes, not just one action. This is where action chunking proves essential."
+  },
+  {
+    "slide": 81,
+    "title": "Robosuite Benchmarks: Where Diffusion Policy Excels",
+    "narration": "Beyond Push-T, these Robosuite environments show where Diffusion Policy really excels. Lift — picking up a cube. Can — pick and place a can with precision. Square — inserting a square peg, which requires alignment. And tool hang — the hardest benchmark, requiring the robot to hang a tool on a rack. These were the original benchmarks from the paper, and in week four projects you'll have the chance to train on any of these."
+  },
+  {
+    "slide": 82,
+    "title": "Key Config: delta_timestamps",
+    "narration": "One configuration that confuses many newcomers is delta timestamps. Let me demystify it. In the config, images get negative zero point one and zero — that's two frames, the previous and current. States also get two values. And actions get a range from negative zero point one to one point four — that's sixteen timesteps spanning one and a half seconds. At ten frames per second, zero point one seconds equals one frame. So negative zero point one and zero means: previous frame plus current frame. For actions, the sixteen values from negative zero point one to one point four cover the full prediction horizon. This mapping from timestamps to actual tensor indices is handled automatically by LeRobot."
+  },
+  {
+    "slide": 83,
+    "title": "Notebook Part 6: The Denoising Visualization",
+    "narration": "Part six of the notebook is the most illuminating. You'll watch the denoising process in real time. The code iterates through all one hundred timesteps, from ninety-nine down to zero. At each step, the U-Net predicts the noise, and the scheduler removes a bit of it. You can plot the trajectory at each step and watch it evolve from random chaos into a smooth, purposeful path. Then in Part seven, you run this twenty times with different noise seeds, getting twenty different valid trajectories from the same observation. This is multimodality visualized — seeing it happen is worth a thousand words of explanation."
+  },
+  {
+    "slide": 84,
+    "title": "Notebook Part 8: Ablation Experiments",
+    "narration": "Part eight is where deep understanding happens — ablation experiments. You systematically break things to understand why they work. Try DDIM with ten denoising steps instead of one hundred — it's ten times faster with similar quality. Reduce to eight keypoints instead of thirty-two — you'll see reduced spatial precision. Use a smaller U-Net — faster training, but possibly worse performance. Remove FiLM scaling — the visual conditioning weakens. Use only one observation step instead of two — no temporal context. Shorten the prediction horizon to eight — less planning ahead. Pick two or three of these and compare. Your deliverables for week one: a trained checkpoint, evaluation video, loss curves, denoising visualization, and two to three ablation comparisons."
+  },
+  {
+    "slide": 85,
+    "title": "Brainstorming: Design Trade-offs",
+    "narration": "Here are some deep design trade-offs worth discussing. What if we use five observation frames instead of two? More context, but more compute and potential overfitting. What if we execute all sixteen actions or only one? All sixteen means no adaptation to changes. Only one means maximum jitter, no smooth planning. What happens with just one denoising step instead of one hundred? The quality degrades dramatically — diffusion needs iterative refinement. And ResNet eighteen versus ResNet fifty versus a Vision Transformer? Larger encoders are more expressive but slower and need more data. These are the kinds of questions that separate understanding from memorization."
+  },
+  {
+    "slide": 86,
+    "title": "Part 5: Looking Ahead",
+    "narration": "Part Five. Looking Ahead. Let's put what we've learned in the context of where the field is going."
+  },
+  {
+    "slide": 87,
+    "title": "The Roadmap",
+    "narration": "Here's the bootcamp roadmap. This week — week one — we're covering Diffusion Policy with Push-T. You are here. Week two: ALOHA — bimanual manipulation with fourteen degrees of freedom and dual arms. A major step up in complexity. Week three: LIBERO — multi-task with language conditioning. One hundred thirty tasks with language instructions. The policy must understand what you're asking it to do. Week four: projects — DP three for three-D point cloud policies, DPPO for reinforcement learning fine-tuning, ManiSkill three for large-scale simulation, or cross-environment transfer experiments."
+  },
+  {
+    "slide": 88,
+    "title": "Diffusion Policy → pi0",
+    "narration": "Everything you learned today is the foundation for next-generation robot policies. Let me compare Diffusion Policy with pi zero, the cutting-edge system from Physical Intelligence. For vision, we use ResNet eighteen with Spatial Softmax — pi zero uses SigLIP So four hundred M, a much larger vision-language encoder. For language understanding, Diffusion Policy has none — pi zero uses PaliGemma three B, a full vision-language model. For action generation, we use DDPM with one hundred steps — pi zero uses flow matching with just ten steps. Our architecture is the one-D U-Net — pi zero uses a Transformer with mixture of experts. And while we train per-task models, pi zero is a single model that handles many tasks. The trend is clear: larger vision-language models plus lightweight action heads equals better generalization. But the core idea — denoising noise into actions — remains at the heart of both approaches. What you're learning today is truly foundational."
+  },
+  {
+    "slide": 89,
+    "title": "Deliverables",
+    "narration": "Here are your deliverables. Required: complete the Week One notebook through Parts zero to seven. Train for at least five thousand steps. Produce an evaluation video. Create the denoising visualization from Part six and the multimodality plot from Part seven. Run two to three ablation experiments from Part eight. And write a short one-page report on what you learned. You have access to all the resources — the paper at the Diffusion Policy website, the LeRobot code on GitHub, the three-D visualization, the training walkthrough, and the interactive visualizer."
+  },
+  {
+    "slide": 90,
+    "title": "Final Discussion",
+    "narration": "Before we wrap up, let me leave you with some questions to think about. What was the single most surprising idea from today's lecture? Many people say it's the simplicity of the training loss — just MSE on predicted noise, yet it produces incredibly sophisticated robot behavior. Is one hundred denoising steps too slow for real-time robot control? The answer is yes for some applications, which is why DDIM and flow matching exist — reducing to ten or even one step. How does such a simple loss function — MSE — produce such complex behavior? It's because the architecture and the iterative denoising process do the heavy lifting. And what would you improve? A different vision backbone? More observation frames? A different noise schedule? These are all active research directions."
+  },
+  {
+    "slide": 91,
+    "title": "Let's Build",
+    "narration": "And with that, it's time to build. Download the Week One notebook, upload it to Google Colab, and start exploring. Remember — the goal isn't just to run the cells, but to understand every piece. Modify things. Break things. See what happens. That's how real understanding develops. I'll see you next week for ALOHA and bimanual manipulation. Happy building."
+  }
+]
