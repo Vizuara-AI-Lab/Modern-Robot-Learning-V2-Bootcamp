@@ -25,8 +25,6 @@ body{
   min-height:100vh;display:flex;flex-direction:column;
 }
 h1,h2,h3,h4{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
-
-/* ── NAV ── */
 nav{
   position:sticky;top:0;z-index:100;
   background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);
@@ -45,11 +43,7 @@ nav{
   transition:background 0.2s,color 0.2s;
 }
 .nav-link:hover{background:var(--accent);color:#fff}
-
-/* ── HEADER ── */
-.header{
-  max-width:1080px;margin:0 auto;padding:3.5rem 2rem 2.5rem;
-}
+.header{max-width:1080px;margin:0 auto;padding:3.5rem 2rem 2.5rem}
 .header-top{display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;flex-wrap:wrap}
 .header h1{font-size:3.8rem;color:var(--accent);flex:1;min-width:200px}
 .tag{
@@ -60,12 +54,8 @@ nav{
   white-space:nowrap;margin-top:1rem;
 }
 .header p{color:var(--muted);max-width:720px;font-size:1.15rem}
-.divider{
-  max-width:1080px;margin:0 auto;padding:0 2rem;
-}
+.divider{max-width:1080px;margin:0 auto;padding:0 2rem}
 .divider hr{border:none;border-top:1px solid var(--border)}
-
-/* ── LECTURE GRID ── */
 .lectures{max-width:1080px;margin:0 auto;padding:2rem 2rem 3rem}
 .lectures h2{font-size:2.4rem;color:var(--warm);margin-bottom:1.5rem}
 .grid{display:grid;grid-template-columns:1fr;gap:1.25rem}
@@ -77,23 +67,15 @@ nav{
 }
 .card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(58,48,37,0.1)}
 .card-thumb{
-  background:var(--surface);
-  display:flex;align-items:center;justify-content:center;
+  background:var(--surface);display:flex;align-items:center;justify-content:center;
   overflow:hidden;min-height:160px;
 }
 .card-thumb img{width:100%;height:100%;object-fit:cover}
 .card-body{padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center}
-.card-meta{
-  display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;flex-wrap:wrap;
-}
-.card-num{
-  font-family:'Caveat',cursive;font-size:1.15rem;color:var(--accent);font-weight:700;
-}
+.card-meta{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;flex-wrap:wrap}
+.card-num{font-family:'Caveat',cursive;font-size:1.15rem;color:var(--accent);font-weight:700}
 .card-date{font-size:0.88rem;color:var(--muted)}
-.card-body h3{
-  font-size:2rem;color:var(--text);margin-bottom:0.4rem;
-  font-family:'Caveat',cursive;
-}
+.card-body h3{font-size:2rem;color:var(--text);margin-bottom:0.4rem;font-family:'Caveat',cursive}
 .card-body p{color:var(--muted);font-size:1.02rem;margin-bottom:0.75rem}
 .card-tags{display:flex;gap:0.4rem;flex-wrap:wrap}
 .card-tags span{
@@ -106,8 +88,6 @@ nav{
 }
 .card-arrow svg{width:14px;height:14px;transition:transform 0.2s}
 .card:hover .card-arrow svg{transform:translateX(3px)}
-
-/* Coming-soon state */
 .card.soon{opacity:0.45;pointer-events:none}
 .card.soon .card-arrow{display:none}
 .soon-tag{
@@ -115,8 +95,6 @@ nav{
   font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
   padding:0.2rem 0.55rem;border-radius:5px;margin-top:0.5rem;border:1px solid var(--border);
 }
-
-/* ── RESOURCES ── */
 .resources{max-width:1080px;margin:0 auto;padding:0 2rem 3rem}
 .resources h2{font-size:2.4rem;color:var(--warm);margin-bottom:1.25rem}
 .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
@@ -129,89 +107,12 @@ nav{
 .res-icon{font-size:1.5rem;margin-bottom:0.5rem}
 .res-card h4{font-size:1.35rem;color:var(--text);margin-bottom:0.3rem}
 .res-card p{color:var(--muted);font-size:0.92rem}
-
-/* ── LECTURE BLOCK (expanded card with nested resources) ── */
-.lecture-block{
-  background:var(--card);border:1px solid var(--border);border-radius:12px;
-  overflow:hidden;
-}
-.lecture-block .lecture-header{
-  display:grid;grid-template-columns:220px 1fr;
-  text-decoration:none;color:inherit;
-  transition:box-shadow 0.2s;
-}
-.lecture-block .lecture-header:hover{box-shadow:0 4px 16px rgba(58,48,37,0.06)}
-.lecture-block .lecture-resources{
-  border-top:1px solid var(--border);
-  padding:1.5rem;background:var(--surface);
-}
-.section-title{
-  font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent);
-  margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;
-}
-.section-badge{
-  font-family:'Nunito Sans',sans-serif;font-size:0.65rem;font-weight:700;
-  text-transform:uppercase;letter-spacing:0.05em;
-  padding:0.2rem 0.5rem;border-radius:4px;
-}
-.resource-divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
-
-/* Notebook cards inside lecture block */
-.nb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;margin-bottom:0.5rem}
-.nb-card{
-  background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:1.1rem;text-decoration:none;color:inherit;
-  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
-}
-.nb-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
-.nb-card .nb-icon{font-size:1.3rem;margin-bottom:0.4rem}
-.nb-card h4{font-size:1.15rem;color:var(--text);margin-bottom:0.25rem;font-family:'Caveat',cursive}
-.nb-card p{color:var(--muted);font-size:0.82rem;flex:1}
-.nb-card .colab-badge{
-  display:inline-flex;align-items:center;gap:0.3rem;
-  margin-top:0.6rem;font-size:0.78rem;font-weight:700;color:var(--accent);
-}
-.nb-card .colab-badge svg{width:12px;height:12px}
-
-/* Component compact cards */
-.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.6rem}
-.comp-card{
-  background:var(--card);border:1px solid var(--border);border-radius:8px;
-  padding:0.75rem;text-align:center;text-decoration:none;color:inherit;
-  transition:transform 0.2s,box-shadow 0.2s;
-}
-.comp-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(58,48,37,0.08)}
-.comp-card .comp-icon{font-size:1.15rem;margin-bottom:0.3rem}
-.comp-card h4{font-size:1rem;color:var(--text);font-family:'Caveat',cursive}
-
-/* Visualizer cards inside lecture block */
-.viz-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem}
-.viz-card{
-  background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:1.1rem;text-decoration:none;color:inherit;
-  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
-}
-.viz-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
-.viz-card .viz-icon{font-size:1.3rem;margin-bottom:0.4rem}
-.viz-card h4{font-size:1.15rem;color:var(--text);margin-bottom:0.25rem;font-family:'Caveat',cursive}
-.viz-card p{color:var(--muted);font-size:0.82rem;flex:1}
-.viz-arrow{
-  display:inline-flex;align-items:center;gap:0.3rem;
-  margin-top:0.5rem;font-size:0.78rem;font-weight:700;color:var(--accent);
-}
-.viz-arrow svg{width:12px;height:12px;transition:transform 0.2s}
-.viz-card:hover .viz-arrow svg{transform:translateX(3px)}
-
-/* ── FOOTER ── */
 footer{
-  margin-top:auto;
-  text-align:center;padding:1.5rem 2rem;color:var(--muted);font-size:0.78rem;
+  margin-top:auto;text-align:center;padding:1.5rem 2rem;color:var(--muted);font-size:0.78rem;
   border-top:1px solid var(--border);
 }
 footer a{color:var(--accent);text-decoration:none}
 footer a:hover{text-decoration:underline}
-
-/* ── RESPONSIVE ── */
 @media(max-width:640px){
   .header h1{font-size:2.6rem}
   .header{padding:2.5rem 1.25rem 1.5rem}
@@ -220,17 +121,11 @@ footer a:hover{text-decoration:underline}
   .card-thumb{height:180px}
   nav .nav-inner{padding:0.6rem 1.25rem}
   .res-grid{grid-template-columns:1fr}
-  .lecture-block .lecture-header{grid-template-columns:1fr}
-  .lecture-block .lecture-header .card-thumb{height:180px}
-  .nb-grid{grid-template-columns:1fr}
-  .comp-grid{grid-template-columns:repeat(2,1fr)}
-  .viz-row{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- Nav -->
 <nav>
   <div class="nav-inner">
     <div class="nav-left">
@@ -241,7 +136,6 @@ footer a:hover{text-decoration:underline}
   </div>
 </nav>
 
-<!-- Header -->
 <div class="header">
   <div class="header-top">
     <h1>Lecture Notes</h1>
@@ -252,141 +146,35 @@ footer a:hover{text-decoration:underline}
 
 <div class="divider"><hr></div>
 
-<!-- Lectures -->
 <div class="lectures">
   <h2>Lectures</h2>
   <div class="grid">
 
     <!-- Lecture 1 -->
-    <div class="lecture-block">
-      <a href="/lecture-1/" class="lecture-header">
-        <div class="card-thumb">
-          <img src="/lecture-1-thumb.png" alt="Diffusion Policy architecture overview">
-        </div>
-        <div class="card-body">
-          <div class="card-meta">
-            <span class="card-num">Lecture 1</span>
-            <span class="card-date">March 21, 2026</span>
-          </div>
-          <h3>Diffusion Policy</h3>
-          <p>Visuo-motor policy learning via action diffusion. Trace a complete forward pass from camera image to robot joint commands.</p>
-          <div class="card-tags">
-            <span>ResNet18</span>
-            <span>Spatial Softmax</span>
-            <span>1D U-Net</span>
-            <span>FiLM</span>
-            <span>DDPM</span>
-          </div>
-          <span class="card-arrow">
-            Open lecture slides
-            <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <div class="lecture-resources">
-        <!-- Practical Hands-on Notebooks -->
-        <h4 class="section-title">📓 Practical Hands-on Notebooks</h4>
-        <div class="nb-grid">
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/public/notebooks/Week1_PushT_Diffusion_Policy.ipynb" class="nb-card" target="_blank" rel="noopener">
-            <div class="nb-icon">📗</div>
-            <h4>Week 1: PushT</h4>
-            <p>Train a diffusion policy from scratch on PushT — noise scheduling, denoising, and action prediction.</p>
-            <span class="colab-badge">
-              Open in Colab
-              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-          <div class="nb-card" style="opacity:0.5;pointer-events:none">
-            <div class="nb-icon">📘</div>
-            <h4>Week 2: ALOHA Bimanual</h4>
-            <p>Scale diffusion policy to real-world ALOHA bimanual manipulation with camera observations.</p>
-            <span class="soon-tag">Coming Soon</span>
-          </div>
-          <div class="nb-card" style="opacity:0.5;pointer-events:none">
-            <div class="nb-icon">📙</div>
-            <h4>Week 3: LIBERO Single-Task</h4>
-            <p>Train a diffusion policy on a single LIBERO manipulation task with image observations.</p>
-            <span class="soon-tag">Coming Soon</span>
-          </div>
-          <div class="nb-card" style="opacity:0.5;pointer-events:none">
-            <div class="nb-icon">📕</div>
-            <h4>Week 3: LIBERO Multi-Task</h4>
-            <p>Multi-task learning with LIBERO benchmark — one diffusion policy across diverse tasks.</p>
-            <span class="soon-tag">Coming Soon</span>
-          </div>
-        </div>
-
-        <hr class="resource-divider">
-
-        <!-- Component Deep-Dives -->
-        <h4 class="section-title">🔧 Component Deep-Dives</h4>
-        <div class="comp-grid">
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_ResNet18.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">🧱</div>
-            <h4>ResNet-18</h4>
-          </a>
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_SpatialSoftmax.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">📍</div>
-            <h4>Spatial Softmax</h4>
-          </a>
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Timestep_Embedding.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">⏱️</div>
-            <h4>Timestep Embed</h4>
-          </a>
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_1D_UNet.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">🏗️</div>
-            <h4>1D U-Net</h4>
-          </a>
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_FiLM.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">🎬</div>
-            <h4>FiLM</h4>
-          </a>
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Conditioning_Vector.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">🎛️</div>
-            <h4>Conditioning</h4>
-          </a>
-          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Receding_Horizon.ipynb" class="comp-card" target="_blank" rel="noopener">
-            <div class="comp-icon">🔭</div>
-            <h4>Receding Horizon</h4>
-          </a>
-        </div>
-
-        <hr class="resource-divider">
-
-        <!-- Interactive Visualizers -->
-        <h4 class="section-title">🎲 Interactive Visualizers</h4>
-        <div class="viz-row">
-          <a href="https://diffusion-policy-3d-viz.vercel.app" class="viz-card" target="_blank" rel="noopener">
-            <div class="viz-icon">🫖</div>
-            <h4>3D: Diffusion Policy</h4>
-            <p>SO-101 arm performing teapot pour with DDIM denoising, noise visualization, and action chunks.</p>
-            <span class="viz-arrow">
-              Launch 3D
-              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-          <a href="https://diffusion-policy-training.vercel.app" class="viz-card" target="_blank" rel="noopener">
-            <div class="viz-icon">📊</div>
-            <h4>2D: Training Walkthrough</h4>
-            <p>Step-by-step training walkthrough with real dataset frames, noise schedules, and loss curves.</p>
-            <span class="viz-arrow">
-              Open
-              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-          <a href="https://diffusion-policy-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-            <div class="viz-icon">🔄</div>
-            <h4>2D: Inference Pipeline</h4>
-            <p>Interactive scroll-based visualizer showing the complete diffusion policy inference pipeline.</p>
-            <span class="viz-arrow">
-              Open
-              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-        </div>
+    <a href="/lecture-1-notes/" class="card">
+      <div class="card-thumb">
+        <img src="/lecture-1-thumb.png" alt="Diffusion Policy architecture overview">
       </div>
-    </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="card-num">Lecture 1</span>
+          <span class="card-date">March 21, 2026</span>
+        </div>
+        <h3>Diffusion Policy</h3>
+        <p>Visuo-motor policy learning via action diffusion. Lecture slides, 4 hands-on Colab notebooks, 7 component deep-dives, and 3 interactive visualizers.</p>
+        <div class="card-tags">
+          <span>ResNet18</span>
+          <span>Spatial Softmax</span>
+          <span>1D U-Net</span>
+          <span>FiLM</span>
+          <span>DDPM</span>
+        </div>
+        <span class="card-arrow">
+          Open lecture
+          <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </div>
+    </a>
 
     <!-- Lecture 2 — Coming Soon -->
     <div class="card soon">
@@ -406,7 +194,6 @@ footer a:hover{text-decoration:underline}
   </div>
 </div>
 
-<!-- Resources -->
 <div class="divider"><hr></div>
 <div class="resources">
   <h2>Resources</h2>
@@ -435,7 +222,6 @@ footer a:hover{text-decoration:underline}
   </div>
 </div>
 
-<!-- Footer -->
 <footer>
   <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara AI Labs</a> &middot; Modern Robot Learning from Scratch V2 Bootcamp
 </footer>
