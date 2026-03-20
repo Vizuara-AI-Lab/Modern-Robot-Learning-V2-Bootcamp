@@ -130,79 +130,76 @@ nav{
 .res-card h4{font-size:1.35rem;color:var(--text);margin-bottom:0.3rem}
 .res-card p{color:var(--muted);font-size:0.92rem}
 
-/* ── NOTEBOOKS ── */
-.notebooks{max-width:1080px;margin:0 auto;padding:2rem 2rem 3rem}
-.notebooks h2{font-size:2.4rem;color:var(--warm);margin-bottom:0.5rem}
-.notebooks>p{color:var(--muted);font-size:1.02rem;margin-bottom:1.5rem}
-.nb-subtitle{
+/* ── LECTURE BLOCK (expanded card with nested resources) ── */
+.lecture-block{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;
+}
+.lecture-block .lecture-header{
+  display:grid;grid-template-columns:220px 1fr;
+  text-decoration:none;color:inherit;
+  transition:box-shadow 0.2s;
+}
+.lecture-block .lecture-header:hover{box-shadow:0 4px 16px rgba(58,48,37,0.06)}
+.lecture-block .lecture-resources{
+  border-top:1px solid var(--border);
+  padding:1.5rem;background:var(--surface);
+}
+.section-title{
   font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent);
   margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;
 }
-.nb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2rem}
-.nb-card{
-  background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:1.25rem;text-decoration:none;color:inherit;
-  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
-}
-.nb-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
-.nb-card .nb-header{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.5rem}
-.nb-card .nb-icon{font-size:1.5rem;flex-shrink:0}
-.nb-tag{
-  font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
-  padding:0.2rem 0.5rem;border-radius:4px;white-space:nowrap;
-}
-.nb-card h4{font-size:1.25rem;color:var(--text);margin-bottom:0.3rem;font-family:'Caveat',cursive}
-.nb-card p{color:var(--muted);font-size:0.88rem;flex:1}
-.nb-card .colab-badge{
-  display:inline-flex;align-items:center;gap:0.3rem;
-  margin-top:0.75rem;font-size:0.82rem;font-weight:700;color:var(--accent);
-}
-.nb-card .colab-badge svg{width:14px;height:14px}
-
-/* Component compact cards */
-.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem}
-.comp-card{
-  background:var(--card);border:1px solid var(--border);border-radius:8px;
-  padding:0.9rem;text-align:center;text-decoration:none;color:inherit;
-  transition:transform 0.2s,box-shadow 0.2s;
-}
-.comp-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(58,48,37,0.08)}
-.comp-card .comp-icon{font-size:1.3rem;margin-bottom:0.35rem}
-.comp-card h4{font-size:1.1rem;color:var(--text);font-family:'Caveat',cursive}
-
-/* ── VISUALIZERS ── */
-.visualizers{max-width:1080px;margin:0 auto;padding:2rem 2rem 3rem}
-.visualizers h2{font-size:2.4rem;color:var(--warm);margin-bottom:0.5rem}
-.visualizers>p{color:var(--muted);font-size:1.02rem;margin-bottom:1.5rem}
-.viz-subtitle{
-  font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent);
-  margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;
-}
-.viz-badge{
+.section-badge{
   font-family:'Nunito Sans',sans-serif;font-size:0.65rem;font-weight:700;
   text-transform:uppercase;letter-spacing:0.05em;
   padding:0.2rem 0.5rem;border-radius:4px;
 }
-.viz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:2rem}
+.resource-divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+
+/* Notebook cards inside lecture block */
+.nb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;margin-bottom:0.5rem}
+.nb-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.1rem;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
+}
+.nb-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
+.nb-card .nb-icon{font-size:1.3rem;margin-bottom:0.4rem}
+.nb-card h4{font-size:1.15rem;color:var(--text);margin-bottom:0.25rem;font-family:'Caveat',cursive}
+.nb-card p{color:var(--muted);font-size:0.82rem;flex:1}
+.nb-card .colab-badge{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  margin-top:0.6rem;font-size:0.78rem;font-weight:700;color:var(--accent);
+}
+.nb-card .colab-badge svg{width:12px;height:12px}
+
+/* Component compact cards */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.6rem}
+.comp-card{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:0.75rem;text-align:center;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.comp-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(58,48,37,0.08)}
+.comp-card .comp-icon{font-size:1.15rem;margin-bottom:0.3rem}
+.comp-card h4{font-size:1rem;color:var(--text);font-family:'Caveat',cursive}
+
+/* Visualizer cards inside lecture block */
+.viz-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem}
 .viz-card{
   background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:1.25rem;text-decoration:none;color:inherit;
+  padding:1.1rem;text-decoration:none;color:inherit;
   transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
 }
 .viz-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
-.viz-card .viz-icon{font-size:1.5rem;margin-bottom:0.5rem}
-.viz-card h4{font-size:1.25rem;color:var(--text);margin-bottom:0.3rem;font-family:'Caveat',cursive}
-.viz-card p{color:var(--muted);font-size:0.88rem;flex:1}
-.viz-card .viz-tag{
-  display:inline-block;margin-top:0.6rem;
-  font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
-  padding:0.2rem 0.5rem;border-radius:4px;width:fit-content;
-}
+.viz-card .viz-icon{font-size:1.3rem;margin-bottom:0.4rem}
+.viz-card h4{font-size:1.15rem;color:var(--text);margin-bottom:0.25rem;font-family:'Caveat',cursive}
+.viz-card p{color:var(--muted);font-size:0.82rem;flex:1}
 .viz-arrow{
   display:inline-flex;align-items:center;gap:0.3rem;
-  margin-top:0.5rem;font-size:0.82rem;font-weight:700;color:var(--accent);
+  margin-top:0.5rem;font-size:0.78rem;font-weight:700;color:var(--accent);
 }
-.viz-arrow svg{width:14px;height:14px;transition:transform 0.2s}
+.viz-arrow svg{width:12px;height:12px;transition:transform 0.2s}
 .viz-card:hover .viz-arrow svg{transform:translateX(3px)}
 
 /* ── FOOTER ── */
@@ -223,9 +220,11 @@ footer a:hover{text-decoration:underline}
   .card-thumb{height:180px}
   nav .nav-inner{padding:0.6rem 1.25rem}
   .res-grid{grid-template-columns:1fr}
-  .notebooks,.visualizers{padding-left:1.25rem;padding-right:1.25rem}
-  .nb-grid,.viz-grid{grid-template-columns:1fr}
+  .lecture-block .lecture-header{grid-template-columns:1fr}
+  .lecture-block .lecture-header .card-thumb{height:180px}
+  .nb-grid{grid-template-columns:1fr}
   .comp-grid{grid-template-columns:repeat(2,1fr)}
+  .viz-row{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -259,30 +258,135 @@ footer a:hover{text-decoration:underline}
   <div class="grid">
 
     <!-- Lecture 1 -->
-    <a href="/lecture-1/" class="card">
-      <div class="card-thumb">
-        <img src="/lecture-1-thumb.png" alt="Diffusion Policy architecture overview">
-      </div>
-      <div class="card-body">
-        <div class="card-meta">
-          <span class="card-num">Lecture 1</span>
-          <span class="card-date">March 21, 2026</span>
+    <div class="lecture-block">
+      <a href="/lecture-1/" class="lecture-header">
+        <div class="card-thumb">
+          <img src="/lecture-1-thumb.png" alt="Diffusion Policy architecture overview">
         </div>
-        <h3>Diffusion Policy</h3>
-        <p>Visuo-motor policy learning via action diffusion. Trace a complete forward pass from camera image to robot joint commands.</p>
-        <div class="card-tags">
-          <span>ResNet18</span>
-          <span>Spatial Softmax</span>
-          <span>1D U-Net</span>
-          <span>FiLM</span>
-          <span>DDPM</span>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-num">Lecture 1</span>
+            <span class="card-date">March 21, 2026</span>
+          </div>
+          <h3>Diffusion Policy</h3>
+          <p>Visuo-motor policy learning via action diffusion. Trace a complete forward pass from camera image to robot joint commands.</p>
+          <div class="card-tags">
+            <span>ResNet18</span>
+            <span>Spatial Softmax</span>
+            <span>1D U-Net</span>
+            <span>FiLM</span>
+            <span>DDPM</span>
+          </div>
+          <span class="card-arrow">
+            Open lecture slides
+            <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
         </div>
-        <span class="card-arrow">
-          Open notes
-          <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
+      </a>
+
+      <div class="lecture-resources">
+        <!-- Practical Hands-on Notebooks -->
+        <h4 class="section-title">📓 Practical Hands-on Notebooks</h4>
+        <div class="nb-grid">
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/public/notebooks/Week1_PushT_Diffusion_Policy.ipynb" class="nb-card" target="_blank" rel="noopener">
+            <div class="nb-icon">📗</div>
+            <h4>Week 1: PushT</h4>
+            <p>Train a diffusion policy from scratch on PushT — noise scheduling, denoising, and action prediction.</p>
+            <span class="colab-badge">
+              Open in Colab
+              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+          <div class="nb-card" style="opacity:0.5;pointer-events:none">
+            <div class="nb-icon">📘</div>
+            <h4>Week 2: ALOHA Bimanual</h4>
+            <p>Scale diffusion policy to real-world ALOHA bimanual manipulation with camera observations.</p>
+            <span class="soon-tag">Coming Soon</span>
+          </div>
+          <div class="nb-card" style="opacity:0.5;pointer-events:none">
+            <div class="nb-icon">📙</div>
+            <h4>Week 3: LIBERO Single-Task</h4>
+            <p>Train a diffusion policy on a single LIBERO manipulation task with image observations.</p>
+            <span class="soon-tag">Coming Soon</span>
+          </div>
+          <div class="nb-card" style="opacity:0.5;pointer-events:none">
+            <div class="nb-icon">📕</div>
+            <h4>Week 3: LIBERO Multi-Task</h4>
+            <p>Multi-task learning with LIBERO benchmark — one diffusion policy across diverse tasks.</p>
+            <span class="soon-tag">Coming Soon</span>
+          </div>
+        </div>
+
+        <hr class="resource-divider">
+
+        <!-- Component Deep-Dives -->
+        <h4 class="section-title">🔧 Component Deep-Dives</h4>
+        <div class="comp-grid">
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_ResNet18.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">🧱</div>
+            <h4>ResNet-18</h4>
+          </a>
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_SpatialSoftmax.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">📍</div>
+            <h4>Spatial Softmax</h4>
+          </a>
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Timestep_Embedding.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">⏱️</div>
+            <h4>Timestep Embed</h4>
+          </a>
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_1D_UNet.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">🏗️</div>
+            <h4>1D U-Net</h4>
+          </a>
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_FiLM.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">🎬</div>
+            <h4>FiLM</h4>
+          </a>
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Conditioning_Vector.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">🎛️</div>
+            <h4>Conditioning</h4>
+          </a>
+          <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Receding_Horizon.ipynb" class="comp-card" target="_blank" rel="noopener">
+            <div class="comp-icon">🔭</div>
+            <h4>Receding Horizon</h4>
+          </a>
+        </div>
+
+        <hr class="resource-divider">
+
+        <!-- Interactive Visualizers -->
+        <h4 class="section-title">🎲 Interactive Visualizers</h4>
+        <div class="viz-row">
+          <a href="https://diffusion-policy-3d-viz.vercel.app" class="viz-card" target="_blank" rel="noopener">
+            <div class="viz-icon">🫖</div>
+            <h4>3D: Diffusion Policy</h4>
+            <p>SO-101 arm performing teapot pour with DDIM denoising, noise visualization, and action chunks.</p>
+            <span class="viz-arrow">
+              Launch 3D
+              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+          <a href="https://diffusion-policy-training.vercel.app" class="viz-card" target="_blank" rel="noopener">
+            <div class="viz-icon">📊</div>
+            <h4>2D: Training Walkthrough</h4>
+            <p>Step-by-step training walkthrough with real dataset frames, noise schedules, and loss curves.</p>
+            <span class="viz-arrow">
+              Open
+              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+          <a href="https://diffusion-policy-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
+            <div class="viz-icon">🔄</div>
+            <h4>2D: Inference Pipeline</h4>
+            <p>Interactive scroll-based visualizer showing the complete diffusion policy inference pipeline.</p>
+            <span class="viz-arrow">
+              Open
+              <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+        </div>
       </div>
-    </a>
+    </div>
 
     <!-- Lecture 2 — Coming Soon -->
     <div class="card soon">
@@ -327,308 +431,6 @@ footer a:hover{text-decoration:underline}
       </div>
       <h4>Vizuara</h4>
       <p>AI education platform by Vizuara AI Labs.</p>
-    </a>
-  </div>
-</div>
-
-<!-- Notebooks -->
-<div class="divider"><hr></div>
-<div class="notebooks">
-  <h2>Google Colab Notebooks</h2>
-  <p>From-scratch implementations of robot learning algorithms. Open any notebook in Google Colab to run the code yourself.</p>
-
-  <h3 class="nb-subtitle">📚 Course Notebooks</h3>
-  <div class="nb-grid">
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/public/notebooks/Week1_PushT_Diffusion_Policy.ipynb" class="nb-card" target="_blank" rel="noopener">
-      <div class="nb-header">
-        <span class="nb-icon">📗</span>
-        <span class="nb-tag" style="background:#e8f5e9;color:#2e7d32">Diffusion Policy</span>
-      </div>
-      <h4>Week 1: PushT Diffusion Policy</h4>
-      <p>Train a diffusion policy from scratch on PushT — noise scheduling, denoising, and action prediction.</p>
-      <span class="colab-badge">
-        Open in Colab
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/public/notebooks/Week1_PushT_Diffusion_Policy.ipynb" class="nb-card" target="_blank" rel="noopener" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">📘</span>
-        <span class="nb-tag" style="background:#e8f5e9;color:#2e7d32">Diffusion Policy</span>
-      </div>
-      <h4>Week 2: ALOHA Bimanual</h4>
-      <p>Scale diffusion policy to real-world ALOHA bimanual manipulation with camera observations.</p>
-      <span class="soon-tag">Coming with Lecture 2</span>
-    </a>
-
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/public/notebooks/Week1_PushT_Diffusion_Policy.ipynb" class="nb-card" target="_blank" rel="noopener" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">📙</span>
-        <span class="nb-tag" style="background:#e8f5e9;color:#2e7d32">Diffusion Policy</span>
-      </div>
-      <h4>Week 3: LIBERO Multi-Task</h4>
-      <p>Multi-task learning with LIBERO benchmark — one policy across diverse manipulation tasks.</p>
-      <span class="soon-tag">Coming with Lecture 3</span>
-    </a>
-
-    <div class="nb-card" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">🔮</span>
-        <span class="nb-tag" style="background:#fff3e0;color:#e65100">World Models</span>
-      </div>
-      <h4>DINO World Model</h4>
-      <p>Build DINO's transformer world model — discrete latent dynamics with VQ-VAE and transformer predictor.</p>
-      <span class="soon-tag">Coming Soon</span>
-    </div>
-
-    <div class="nb-card" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">🎯</span>
-        <span class="nb-tag" style="background:#fff3e0;color:#e65100">World Models</span>
-      </div>
-      <h4>DINO WM — PushT</h4>
-      <p>Apply the DINO world model to PushT — plan and act using learned dynamics.</p>
-      <span class="soon-tag">Coming Soon</span>
-    </div>
-
-    <div class="nb-card" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">👁️</span>
-        <span class="nb-tag" style="background:#fff3e0;color:#e65100">World Models</span>
-      </div>
-      <h4>IRIS World Model</h4>
-      <p>Implement IRIS — autoregressive imagination in discrete latent space with a GPT-style transformer.</p>
-      <span class="soon-tag">Coming Soon</span>
-    </div>
-
-    <div class="nb-card" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">🚶</span>
-        <span class="nb-tag" style="background:#e8f5e9;color:#2e7d32">Model-Based RL</span>
-      </div>
-      <h4>TD-MPC2 Walker</h4>
-      <p>Build TD-MPC2 for continuous control — model-based RL with learned dynamics and planning.</p>
-      <span class="soon-tag">Coming Soon</span>
-    </div>
-
-    <div class="nb-card" style="pointer-events:none;opacity:0.5">
-      <div class="nb-header">
-        <span class="nb-icon">🧠</span>
-        <span class="nb-tag" style="background:#e3f2fd;color:#1565c0">VLA</span>
-      </div>
-      <h4>pi0 — Phase 0 &amp; 1</h4>
-      <p>Implement pi0 vision-language-action model — SigLIP encoding to PaliGemma backbone.</p>
-      <span class="soon-tag">Coming Soon</span>
-    </div>
-  </div>
-
-  <h3 class="nb-subtitle">🔧 Component Deep-Dives</h3>
-  <div class="comp-grid">
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_ResNet18.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">🧱</div>
-      <h4>ResNet-18</h4>
-    </a>
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_SpatialSoftmax.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">📍</div>
-      <h4>Spatial Softmax</h4>
-    </a>
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Timestep_Embedding.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">⏱️</div>
-      <h4>Timestep Embed</h4>
-    </a>
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_1D_UNet.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">🏗️</div>
-      <h4>1D U-Net</h4>
-    </a>
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_FiLM.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">🎬</div>
-      <h4>FiLM</h4>
-    </a>
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Conditioning_Vector.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">🎛️</div>
-      <h4>Conditioning</h4>
-    </a>
-    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-1-diffusion-policy/notebooks/Component_Receding_Horizon.ipynb" class="comp-card" target="_blank" rel="noopener">
-      <div class="comp-icon">🔭</div>
-      <h4>Receding Horizon</h4>
-    </a>
-  </div>
-</div>
-
-<!-- Visualizers -->
-<div class="divider"><hr></div>
-<div class="visualizers">
-  <h2>Interactive Visualizers</h2>
-  <p>3D animated walkthroughs and 2D scroll-driven explainers for every architecture — built with Three.js and hand-crafted for intuition.</p>
-
-  <h3 class="viz-subtitle">
-    🎲 3D Visualizers
-    <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Three.js</span>
-  </h3>
-  <div class="viz-grid">
-    <a href="https://diffusion-policy-3d-viz.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🫖</div>
-      <h4>Diffusion Policy</h4>
-      <p>SO-101 arm performing a teapot pour task with DDIM denoising, noise visualization, and action chunks.</p>
-      <span class="viz-tag" style="background:#e8f5e9;color:#2e7d32">Policy</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://pi0-viz-hub.vercel.app/step1-siglip/" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">👁️</div>
-      <h4>SigLIP Visual Encoding</h4>
-      <p>Step 1 of pi0 — image flows through patch embedding and transformer layers into visual tokens.</p>
-      <span class="viz-tag" style="background:#e3f2fd;color:#1565c0">pi0</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://pi0-viz-hub.vercel.app/step2-vlm/" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🧩</div>
-      <h4>VLM Backbone</h4>
-      <p>Step 2 of pi0 — text and visual tokens fuse through PaliGemma's transformer into unified embeddings.</p>
-      <span class="viz-tag" style="background:#e3f2fd;color:#1565c0">pi0</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://pi0-viz-hub.vercel.app/step3-action-expert/" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🌊</div>
-      <h4>Action Expert</h4>
-      <p>Step 3 of pi0 — noise transforms into robot actions through flow matching and velocity prediction.</p>
-      <span class="viz-tag" style="background:#e3f2fd;color:#1565c0">pi0</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://pi0-viz-hub.vercel.app/step4-input-assembly/" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🔗</div>
-      <h4>Input Assembly</h4>
-      <p>Step 4 of pi0 — three token blocks assemble into a sequence with block-wise causal attention masks.</p>
-      <span class="viz-tag" style="background:#e3f2fd;color:#1565c0">pi0</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://dino-transformer-predictor-visualiz.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🔮</div>
-      <h4>DINO Transformer</h4>
-      <p>DINO's transformer world model predicting next latent states from discrete tokens.</p>
-      <span class="viz-tag" style="background:#fff3e0;color:#e65100">World Model</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://iris-world-model-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🌐</div>
-      <h4>IRIS World Model</h4>
-      <p>Autoregressive imagination — GPT-style transformer predicting future frames in latent space.</p>
-      <span class="viz-tag" style="background:#fff3e0;color:#e65100">World Model</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://vqvae-decoder-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🎨</div>
-      <h4>VQ-VAE Decoder</h4>
-      <p>Reconstructing images from discrete codebook tokens through transposed convolutions.</p>
-      <span class="viz-tag" style="background:#fff3e0;color:#e65100">World Model</span>
-      <span class="viz-arrow">
-        Launch
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-  </div>
-
-  <h3 class="viz-subtitle">
-    📐 2D Visualizers
-    <span class="viz-badge" style="background:#fce4ec;color:#c62828">Scroll-Driven</span>
-  </h3>
-  <div class="viz-grid">
-    <a href="https://diffusion-policy-training.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">📊</div>
-      <h4>Diffusion Policy Training</h4>
-      <p>Step-by-step training walkthrough with real dataset frames, noise schedules, and loss curves.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://diffusion-policy-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🔄</div>
-      <h4>Diffusion Policy Visualizer</h4>
-      <p>Interactive scroll-based visualizer showing the complete diffusion policy inference pipeline.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://pi0-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🖼️</div>
-      <h4>pi0 Step-by-Step Guide</h4>
-      <p>5-step interactive guide through the complete pi0 architecture — from SigLIP to action generation.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://pi0-training.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">⚙️</div>
-      <h4>pi0 Training Walkthrough</h4>
-      <p>Interactive training pipeline visualization for the pi0 vision-language-action model.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://dino-transformer-predictor-visualiz.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🔍</div>
-      <h4>DINO Transformer Visualizer</h4>
-      <p>2D walkthrough of DINO's transformer predictor architecture with frame-by-frame breakdowns.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://iris-world-model-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🗺️</div>
-      <h4>IRIS World Model Visualizer</h4>
-      <p>Interactive guide through IRIS's autoregressive world model components and latent imagination.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </a>
-
-    <a href="https://vqvae-decoder-visualizer.vercel.app" class="viz-card" target="_blank" rel="noopener">
-      <div class="viz-icon">🧱</div>
-      <h4>VQ-VAE Decoder Visualizer</h4>
-      <p>Step-through visualization of VQ-VAE decoding from codebook indices to reconstructed images.</p>
-      <span class="viz-arrow">
-        Open
-        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
     </a>
   </div>
 </div>
