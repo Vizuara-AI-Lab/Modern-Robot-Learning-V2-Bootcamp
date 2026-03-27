@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/82097350_2098684366_223132457.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_1328791487_3951371945.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_1432596116_948485114.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_3234832961_4192195657.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_1432596116_1490249781.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_1291941650_1259570122.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_1694949871_2593325078.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_1432596116_1712811935.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_2937307402_3076286248.mp4'
+file 'file:/Users/raj/Desktop/Robotics Research/Modern-Robot-Learning-V2-Bootcamp/lecture-2-vla/manim/media/videos/vla_components/1080p30/partial_movie_files/Scene02_Word2VecSpace/3307641579_2872842549_1398268287.mp4'

@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Conditioning Vectors to Token Attention</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #faf8f5;
+    --card: #ffffff;
+    --accent: #c2785c;
+    --accent2: #8b6f4e;
+    --accent3: #d4543a;
+    --accent4: #e8a838;
+    --text: #3a3025;
+    --muted: #8c7e6f;
+    --border: #e5ddd3;
+    --green: #6a9a5b;
+    --cream: #f5f0e8;
+    --blue: #5B8CB8;
+    --purple: #9B7EC8;
+
+    /* Token type colors */
+    --tok-image: #c2785c;
+    --tok-lang: #e8a838;
+    --tok-state: #6a9a5b;
+    --tok-action: #8b6f4e;
+    --tok-image-bg: rgba(194,120,92,0.12);
+    --tok-lang-bg: rgba(232,168,56,0.12);
+    --tok-state-bg: rgba(106,154,91,0.12);
+    --tok-action-bg: rgba(139,111,78,0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Typography ── */
+  h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+  h2 { font-size: 1.65rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.5em; color: var(--text); }
+  h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4em; }
+  p { margin-bottom: 1em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .muted { color: var(--muted); }
+  .accent { color: var(--accent); }
+  .small { font-size: 0.85rem; }
+
+  /* ── Layout ── */
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 16px rgba(58,48,37,0.04);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ── Hero ── */
+  #hero {
+    padding: 100px 0 80px;
+    text-align: center;
+    background: linear-gradient(to bottom, #f5f0e8, var(--bg));
+    border-bottom: 1px solid var(--border);
+  }
+  #hero h1 { margin-bottom: 12px; }
+  #hero .subtitle { font-size: 1.15rem; color: var(--muted); margin-bottom: 40px; max-width: 640px; margin-left: auto; margin-right: auto; }
+  .hero-image {
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(58,48,37,0.1);
+  }
+  .hero-image img { width: 100%; display: block; }
+  .scroll-hint {
+    margin-top: 48px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+
+  /* ── Section numbers ── */
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  /* ── Concept images ── */
+  .concept-img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(58,48,37,0.06);
+  }
+
+  /* ── Callout ── */
+  .callout {
+    background: var(--cream);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-size: 0.95rem;
+  }
+  .callout strong { color: var(--accent); }
+
+  .callout-green {
+    background: rgba(106,154,91,0.08);
+    border-left-color: var(--green);
+  }
+  .callout-green strong { color: var(--green); }
+
+  /* ── Step-through (Section 1) ── */
+  .step-through {
+    position: relative;
+  }
+  .step-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+  }
+  .step-card.active {
+    border-color: var(--accent);
+    opacity: 1;
+    box-shadow: 0 4px 24px rgba(194,120,92,0.12);
+  }
+  .step-card:hover { border-color: var(--accent); opacity: 0.85; }
+  .step-card.active:hover { opacity: 1; }
+  .step-num {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+  .step-card h4 { font-size: 1.05rem; margin-bottom: 6px; }
+  .step-card p { font-size: 0.9rem; color: var(--muted); margin: 0; }
+
+  /* Step visual area */
+  .step-visual {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 40px;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Step 1 SVG Diagram (Diffusion Policy) ── */
+  .dp-diagram {
+    width: 100%;
+    max-width: 480px;
+  }
+  .dp-diagram .dp-box {
+    fill: var(--card);
+    stroke: var(--border);
+    stroke-width: 2;
+    rx: 10;
+    transition: all 0.4s ease;
+  }
+  .dp-diagram .dp-box.highlight { stroke: var(--accent); stroke-width: 3; fill: rgba(194,120,92,0.06); }
+  .dp-diagram .dp-arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); transition: stroke 0.3s; }
+  .dp-diagram .dp-arrow.highlight { stroke: var(--accent); stroke-width: 3; }
+  .dp-diagram .dp-label { font-family: 'Inter', sans-serif; font-size: 11px; fill: var(--text); text-anchor: middle; }
+  .dp-diagram .dp-label-small { font-family: 'JetBrains Mono', monospace; font-size: 9px; fill: var(--muted); text-anchor: middle; }
+  .dp-diagram .dp-vector { fill: var(--accent); opacity: 0.9; transition: all 0.4s; }
+  .dp-diagram .dp-vector.highlight { opacity: 1; filter: drop-shadow(0 0 8px rgba(194,120,92,0.5)); }
+
+  /* ── Toggle Switch (Section 2) ── */
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    justify-content: center;
+  }
+  .toggle-label { font-size: 0.9rem; font-weight: 500; color: var(--muted); transition: color 0.3s; }
+  .toggle-label.active { color: var(--accent); font-weight: 600; }
+  .toggle-switch {
+    position: relative;
+    width: 56px;
+    height: 30px;
+    background: var(--border);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .toggle-switch.on { background: var(--accent); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .toggle-switch.on::after { transform: translateX(26px); }
+
+  /* ── Token Explorer (Section 3) ── */
+  .token-sequence {
+    display: flex;
+    gap: 4px;
+    padding: 20px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .token-block {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    color: white;
+  }
+  .token-block:hover {
+    transform: translateY(-4px) scale(1.08);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .token-block.selected {
+    transform: translateY(-6px) scale(1.12);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 2;
+  }
+  .token-block.image { background: var(--tok-image); }
+  .token-block.language { background: var(--tok-lang); color: var(--text); }
+  .token-block.state { background: var(--tok-state); }
+  .token-block.action { background: var(--tok-action); }
+
+  .token-separator {
+    width: 2px;
+    height: 56px;
+    background: var(--border);
+    margin: 0 6px;
+    border-radius: 1px;
+  }
+
+  .token-group-label {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+    padding: 4px 12px;
+    border-radius: 8px;
+  }
+
+  .token-detail-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 20px;
+    min-height: 80px;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  .token-detail-panel h4 { font-size: 0.95rem; margin-bottom: 4px; }
+  .token-detail-panel p { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+  /* ── Attention Matrix (Section 4) ── */
+  .attention-container {
+    position: relative;
+  }
+
+  .attention-grid {
+    display: grid;
+    gap: 2px;
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  .attn-cell {
+    width: 42px;
+    height: 42px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .attn-cell.active { opacity: 1; }
+  .attn-cell.dimmed { opacity: 0.15; }
+  .attn-cell.highlighted {
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent);
+    z-index: 2;
+  }
+
+  .attn-cell.obs-obs { background: rgba(106,154,91,0.5); }
+  .attn-cell.obs-obs.active { background: rgba(106,154,91,0.85); }
+  .attn-cell.act-obs { background: rgba(194,120,92,0.5); }
+  .attn-cell.act-obs.active { background: rgba(194,120,92,0.85); }
+  .attn-cell.act-act { background: rgba(232,168,56,0.5); }
+  .attn-cell.act-act.active { background: rgba(232,168,56,0.85); }
+  .attn-cell.blocked { background: rgba(0,0,0,0.04); }
+  .attn-cell.blocked.active { background: rgba(212,84,58,0.15); }
+
+  .attn-row-label, .attn-col-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    width: 42px;
+    height: 42px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .attn-row-label.image, .attn-col-label.image { color: var(--tok-image); background: var(--tok-image-bg); }
+  .attn-row-label.language, .attn-col-label.language { color: var(--tok-lang); background: var(--tok-lang-bg); }
+  .attn-row-label.state, .attn-col-label.state { color: var(--tok-state); background: var(--tok-state-bg); }
+  .attn-row-label.action, .attn-col-label.action { color: var(--tok-action); background: var(--tok-action-bg); }
+  .attn-row-label.highlight, .attn-col-label.highlight {
+    box-shadow: 0 0 0 2px var(--accent);
+    transform: scale(1.1);
+  }
+
+  .attn-axis-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .attn-info-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 24px;
+    text-align: center;
+    min-height: 72px;
+    transition: all 0.3s ease;
+  }
+  .attn-info-box h4 { font-size: 1rem; margin-bottom: 4px; }
+  .attn-info-box p { font-size: 0.88rem; color: var(--muted); margin: 0; }
+
+  /* ── Attention Legend ── */
+  .attn-legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .attn-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .attn-legend-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+
+  /* Attention beam SVG */
+  .beam-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* ── Interactive Beam Visualization (Section 5) ── */
+  .beam-viz {
+    position: relative;
+    padding: 40px 20px;
+    background: var(--cream);
+    border-radius: 16px;
+    min-height: 360px;
+  }
+  .beam-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .beam-row.top { margin-bottom: 120px; }
+  .beam-token {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    z-index: 2;
+  }
+  .beam-token:hover { transform: scale(1.1); }
+  .beam-token.selected { transform: scale(1.15); box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+  .beam-token.image { background: var(--tok-image); }
+  .beam-token.language { background: var(--tok-lang); color: var(--text); }
+  .beam-token.state { background: var(--tok-state); }
+  .beam-token.action { background: var(--tok-action); }
+  .beam-token.faded { opacity: 0.3; }
+
+  .beam-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .beam-group-label {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .beam-separator {
+    width: 1px;
+    height: 52px;
+    background: rgba(0,0,0,0.1);
+    margin: 0 4px;
+  }
+
+  /* ── Comparison (Section 5 cards) ── */
+  .compare-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .compare-card.old { border-color: var(--accent3); }
+  .compare-card.new { border-color: var(--green); }
+  .compare-card h3 { margin-bottom: 16px; }
+  .compare-icon { font-size: 2.2rem; margin-bottom: 12px; }
+
+  .compare-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .compare-flow-box {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    width: 100%;
+    max-width: 260px;
+  }
+  .compare-flow-arrow {
+    color: var(--muted);
+    font-size: 1.2rem;
+  }
+  .compare-verdict {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  .compare-card.old .compare-verdict { background: rgba(212,84,58,0.08); color: var(--accent3); }
+  .compare-card.new .compare-verdict { background: rgba(106,154,91,0.08); color: var(--green); }
+
+  /* ── Summary Section ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin: 32px 0;
+  }
+  .summary-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+  }
+  .summary-item .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  .summary-item h4 { font-size: 0.95rem; margin-bottom: 6px; }
+  .summary-item p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+  /* ── Navigation dots ── */
+  .nav-dots {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 100;
+  }
+  .nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    padding: 0;
+  }
+  .nav-dot.active { background: var(--accent); transform: scale(1.3); }
+  .nav-dot:hover { background: var(--accent); opacity: 0.7; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .two-col { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.3rem; }
+    .section { padding: 48px 0; }
+    .nav-dots { display: none; }
+    .attn-cell { width: 28px; height: 28px; }
+    .attn-row-label, .attn-col-label { width: 28px; height: 28px; font-size: 0.55rem; }
+    .token-block { width: 44px; height: 44px; font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  NAVIGATION DOTS                       -->
+<!-- ═══════════════════════════════════════ -->
+<div class="nav-dots" id="nav-dots"></div>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 0: HERO                       -->
+<!-- ═══════════════════════════════════════ -->
+<section id="hero">
+  <div class="container">
+    <h1>From Conditioning Vectors<br>to <span class="accent">Token Attention</span></h1>
+    <p class="subtitle">You already know how Diffusion Policy conditions actions on observations using a global vector. Now let's see how tokens and attention do the same thing — but better.</p>
+    <div class="hero-image">
+      <img src="images/hero_overview.png" alt="Overview: conditioning vectors vs token attention"
+           onerror="this.parentElement.innerHTML='<div style=&quot;padding:80px 40px;background:var(--cream);text-align:center;color:var(--muted);&quot;><p style=&quot;font-size:1.1rem;&quot;>Hero image loading...</p><p style=&quot;font-size:0.85rem;&quot;>Run generate_images.py first</p></div>'">
+    </div>
+    <p class="scroll-hint">Scroll to explore ↓</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 1: RECAP — WHAT YOU KNOW      -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-recap">
+  <div class="container">
+    <div class="section-num">1</div>
+    <h2>What You Already Know</h2>
+    <p class="muted">The two-step framework from Diffusion Policy. Click each step to see how it works.</p>
+
+    <div class="two-col">
+      <div class="step-through">
+        <div class="step-card active" data-step="1" onclick="setRecapStep(1)">
+          <span class="step-num">STEP 1</span>
+          <h4>Build a Global Conditioning Vector</h4>
+          <p>Take the camera image, robot joint positions, and the current timestep. Run them through encoder networks. Compress everything into a <strong style="color:var(--accent)">single vector</strong>.</p>
+        </div>
+        <div class="step-card" data-step="2" onclick="setRecapStep(2)">
+          <span class="step-num">STEP 2</span>
+          <h4>Neural Network Predicts Noise</h4>
+          <p>Feed the conditioning vector + noisy actions into a neural network. It predicts the noise. Subtract the noise to get cleaner actions. Repeat.</p>
+        </div>
+      </div>
+
+      <div class="step-visual" id="recap-visual">
+        <!-- SVG diagram rendered by JS -->
+        <svg class="dp-diagram" viewBox="0 0 440 340" id="recap-svg">
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#8c7e6f"/>
+            </marker>
+            <marker id="arrowhead-accent" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#c2785c"/>
+            </marker>
+          </defs>
+
+          <!-- Step 1 elements -->
+          <g id="recap-step1-group">
+            <!-- Observation boxes -->
+            <rect class="dp-box" id="dp-cam" x="10" y="20" width="100" height="50"/>
+            <text class="dp-label" x="60" y="42">Camera</text>
+            <text class="dp-label-small" x="60" y="56">224 x 224</text>
+
+            <rect class="dp-box" id="dp-state" x="130" y="20" width="100" height="50"/>
+            <text class="dp-label" x="180" y="42">Robot State</text>
+            <text class="dp-label-small" x="180" y="56">joint angles</text>
+
+            <rect class="dp-box" id="dp-time" x="250" y="20" width="100" height="50"/>
+            <text class="dp-label" x="300" y="42">Timestep</text>
+            <text class="dp-label-small" x="300" y="56">k = 0...K</text>
+
+            <!-- Arrows to encoder -->
+            <path class="dp-arrow" id="dp-arr1" d="M60,70 L60,105 L180,105"/>
+            <path class="dp-arrow" id="dp-arr2" d="M180,70 L180,105"/>
+            <path class="dp-arrow" id="dp-arr3" d="M300,70 L300,105 L180,105"/>
+
+            <!-- Encoder -->
+            <rect class="dp-box" id="dp-encoder" x="100" y="105" width="160" height="45" rx="10"/>
+            <text class="dp-label" x="180" y="132">Encoder Networks</text>
+
+            <!-- Arrow to vector -->
+            <path class="dp-arrow" id="dp-arr4" d="M180,150 L180,180"/>
+
+            <!-- Conditioning vector (circle) -->
+            <circle class="dp-vector" id="dp-vector" cx="180" cy="196" r="16"/>
+            <text class="dp-label" x="180" y="200" fill="white" font-size="9" font-weight="600">c</text>
+            <text class="dp-label-small" x="240" y="200" text-anchor="start">conditioning vector</text>
+          </g>
+
+          <!-- Step 2 elements -->
+          <g id="recap-step2-group" opacity="0.25">
+            <!-- Arrow from vector to NN -->
+            <path class="dp-arrow" id="dp-arr5" d="M180,212 L180,240"/>
+
+            <!-- Noisy actions -->
+            <rect class="dp-box" id="dp-noisy" x="300" y="235" width="120" height="40" rx="8"/>
+            <text class="dp-label" x="360" y="257" fill="#d4543a">Noisy Actions</text>
+            <path class="dp-arrow" id="dp-arr6" d="M300,255 L262,255"/>
+
+            <!-- Neural Network -->
+            <rect class="dp-box" id="dp-nn" x="100" y="235" width="160" height="45" rx="10"/>
+            <text class="dp-label" x="180" y="262">Neural Network</text>
+
+            <!-- Output -->
+            <path class="dp-arrow" id="dp-arr7" d="M180,280 L180,310"/>
+            <rect class="dp-box" id="dp-output" x="115" y="305" width="130" height="35" rx="8"/>
+            <text class="dp-label" x="180" y="326" fill="#6a9a5b">Predicted Noise</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 32px;">
+      <strong>Key observation:</strong> Everything the robot sees and knows gets compressed into a <em>single conditioning vector</em>. This vector is the only way observations influence the predicted actions.
+    </div>
+
+    <div style="margin-top: 24px;">
+      <img src="images/concept_diffusion_2step.png" class="concept-img" alt="Diffusion Policy 2-step framework"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 2: WHAT CHANGES               -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-change">
+  <div class="container">
+    <div class="section-num">2</div>
+    <h2>What Changes in Pi Zero</h2>
+    <p class="muted">The same two-step framework — but Step 1 is fundamentally different. Toggle to compare.</p>
+
+    <div class="toggle-container">
+      <span class="toggle-label active" id="toggle-old-label">Diffusion Policy</span>
+      <div class="toggle-switch" id="approach-toggle" onclick="toggleApproach()"></div>
+      <span class="toggle-label" id="toggle-new-label">Pi Zero</span>
+    </div>
+
+    <div class="two-col">
+      <div class="card" id="change-step1">
+        <h3 style="color:var(--accent);">Step 1: Processing Observations</h3>
+        <div id="change-step1-old">
+          <p>Camera image + robot state + timestep are encoded into a <strong>single conditioning vector</strong>.</p>
+          <div class="compare-flow">
+            <div class="compare-flow-box" style="background:var(--tok-image-bg);">Camera Image</div>
+            <div class="compare-flow-box" style="background:var(--tok-state-bg);">Robot State</div>
+            <div class="compare-flow-box" style="background:var(--tok-lang-bg);">Timestep</div>
+            <div class="compare-flow-arrow">↓ compress ↓</div>
+            <div class="compare-flow-box" style="background:rgba(194,120,92,0.15); border-color:var(--accent); font-weight:600;">Single Conditioning Vector <span class="mono">c</span></div>
+          </div>
+        </div>
+        <div id="change-step1-new" style="display:none;">
+          <p>Camera image + language instruction are processed by a <strong>Vision-Language Model (VLM)</strong> that outputs rich tokens.</p>
+          <div class="compare-flow">
+            <div class="compare-flow-box" style="background:var(--tok-image-bg);">Camera Image</div>
+            <div class="compare-flow-box" style="background:var(--tok-lang-bg);">Language: "pour water"</div>
+            <div class="compare-flow-arrow">↓ VLM ↓</div>
+            <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
+              <div class="compare-flow-box" style="background:var(--tok-image-bg); width:auto; padding:6px 10px; font-size:0.8rem;">I<sub>1</sub></div>
+              <div class="compare-flow-box" style="background:var(--tok-image-bg); width:auto; padding:6px 10px; font-size:0.8rem;">I<sub>2</sub></div>
+              <div class="compare-flow-box" style="background:var(--tok-image-bg); width:auto; padding:6px 10px; font-size:0.8rem;">I<sub>3</sub></div>
+              <div class="compare-flow-box" style="background:var(--tok-image-bg); width:auto; padding:6px 10px; font-size:0.8rem;">I<sub>4</sub></div>
+              <div class="compare-flow-box" style="background:var(--tok-lang-bg); width:auto; padding:6px 10px; font-size:0.8rem;">L<sub>1</sub></div>
+              <div class="compare-flow-box" style="background:var(--tok-lang-bg); width:auto; padding:6px 10px; font-size:0.8rem;">L<sub>2</sub></div>
+              <div class="compare-flow-box" style="background:var(--tok-lang-bg); width:auto; padding:6px 10px; font-size:0.8rem;">L<sub>3</sub></div>
+            </div>
+            <p class="small muted" style="margin-top:8px;">Multiple rich tokens — not a single vector!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="change-step2">
+        <h3 style="color:var(--accent);">Step 2: Conditioning the Network</h3>
+        <div id="change-step2-old">
+          <p>The conditioning vector is <strong>concatenated</strong> with noisy actions and fed to the neural network.</p>
+          <div class="callout" style="margin-top:16px;">
+            <strong>The problem:</strong> All observations squeezed through one vector. Information gets lost — like trying to describe a photo in one sentence.
+          </div>
+        </div>
+        <div id="change-step2-new" style="display:none;">
+          <p>Observation tokens and action tokens are placed in a <strong>sequence</strong>. The neural network uses <strong>attention</strong> — action tokens can directly look at any observation token.</p>
+          <div class="callout callout-green" style="margin-top:16px;">
+            <strong>The advantage:</strong> Each action token can attend to whichever observation details matter most. No information bottleneck.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px;">
+      <img src="images/concept_vlm_replaces.png" class="concept-img" alt="VLM replaces conditioning vector"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 3: TOKEN SEQUENCE              -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-tokens">
+  <div class="container">
+    <div class="section-num">3</div>
+    <h2>Everything Becomes Tokens</h2>
+    <p class="muted">Instead of one conditioning vector, we represent every piece of information as a token. Click any token to learn more.</p>
+
+    <div class="card" style="padding: 32px 24px;">
+      <!-- Token groups with labels -->
+      <div style="display:flex; gap:32px; justify-content:center; flex-wrap:wrap; align-items:flex-start;">
+        <!-- Image tokens -->
+        <div style="text-align:center;">
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <div class="token-block image" data-idx="0" onclick="selectToken(0)">I<sub>1</sub></div>
+            <div class="token-block image" data-idx="1" onclick="selectToken(1)">I<sub>2</sub></div>
+            <div class="token-block image" data-idx="2" onclick="selectToken(2)">I<sub>3</sub></div>
+            <div class="token-block image" data-idx="3" onclick="selectToken(3)">I<sub>4</sub></div>
+          </div>
+          <div class="token-group-label" style="color:var(--tok-image);">Image Tokens</div>
+        </div>
+
+        <div class="token-separator" style="margin-top:0;"></div>
+
+        <!-- Language tokens -->
+        <div style="text-align:center;">
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <div class="token-block language" data-idx="4" onclick="selectToken(4)">L<sub>1</sub></div>
+            <div class="token-block language" data-idx="5" onclick="selectToken(5)">L<sub>2</sub></div>
+            <div class="token-block language" data-idx="6" onclick="selectToken(6)">L<sub>3</sub></div>
+          </div>
+          <div class="token-group-label" style="color:var(--tok-lang);">Language Tokens</div>
+        </div>
+
+        <div class="token-separator" style="margin-top:0;"></div>
+
+        <!-- State tokens -->
+        <div style="text-align:center;">
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <div class="token-block state" data-idx="7" onclick="selectToken(7)">S<sub>1</sub></div>
+            <div class="token-block state" data-idx="8" onclick="selectToken(8)">S<sub>2</sub></div>
+          </div>
+          <div class="token-group-label" style="color:var(--tok-state);">State Tokens</div>
+        </div>
+
+        <div class="token-separator" style="margin-top:0;"></div>
+
+        <!-- Action tokens -->
+        <div style="text-align:center;">
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <div class="token-block action" data-idx="9" onclick="selectToken(9)">A<sub>1</sub></div>
+            <div class="token-block action" data-idx="10" onclick="selectToken(10)">A<sub>2</sub></div>
+            <div class="token-block action" data-idx="11" onclick="selectToken(11)">A<sub>3</sub></div>
+            <div class="token-block action" data-idx="12" onclick="selectToken(12)">A<sub>4</sub></div>
+          </div>
+          <div class="token-group-label" style="color:var(--tok-action);">Action Tokens</div>
+        </div>
+      </div>
+
+      <!-- Bracket labels -->
+      <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+        <div style="text-align:center; flex:1; max-width:380px;">
+          <div style="height:2px; background:var(--green); border-radius:1px;"></div>
+          <div style="font-size:0.8rem; font-weight:600; color:var(--green); margin-top:6px;">Observations</div>
+        </div>
+        <div style="width:20px;"></div>
+        <div style="text-align:center; flex:0 0 auto; min-width:160px;">
+          <div style="height:2px; background:var(--accent2); border-radius:1px;"></div>
+          <div style="font-size:0.8rem; font-weight:600; color:var(--accent2); margin-top:6px;">Actions</div>
+        </div>
+      </div>
+
+      <!-- Detail panel -->
+      <div class="token-detail-panel" id="token-detail">
+        <h4 style="color:var(--muted);">Click a token to learn more</h4>
+        <p>Each token carries rich information about one piece of the observation or one action step.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>The key question:</strong> How do the action tokens (A<sub>1</sub>-A<sub>4</sub>) know about the observations (I, L, S tokens)? They need to be <em>conditioned</em> on the observations to predict useful actions. The answer: <strong style="color:var(--accent);">attention</strong>.
+    </div>
+
+    <div style="margin-top:24px;">
+      <img src="images/concept_token_sequence.png" class="concept-img" alt="Token sequence layout"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 4: ATTENTION MATRIX            -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-attention">
+  <div class="container">
+    <div class="section-num">4</div>
+    <h2>Attention: How Actions "See" Observations</h2>
+    <p class="muted">This is the core mechanism. The attention mask controls which tokens can look at which other tokens. Hover over any cell in the matrix below.</p>
+
+    <!-- Legend -->
+    <div class="attn-legend">
+      <div class="attn-legend-item">
+        <div class="attn-legend-swatch" style="background:rgba(106,154,91,0.7);"></div>
+        <span>Observations see observations</span>
+      </div>
+      <div class="attn-legend-item">
+        <div class="attn-legend-swatch" style="background:rgba(194,120,92,0.7);"></div>
+        <span>Actions see observations</span>
+      </div>
+      <div class="attn-legend-item">
+        <div class="attn-legend-swatch" style="background:rgba(232,168,56,0.7);"></div>
+        <span>Actions see actions</span>
+      </div>
+      <div class="attn-legend-item">
+        <div class="attn-legend-swatch" style="background:rgba(0,0,0,0.05); border:1px solid var(--border);"></div>
+        <span>Blocked (cannot attend)</span>
+      </div>
+    </div>
+
+    <!-- Attention Matrix -->
+    <div style="overflow-x:auto; padding:20px 0;">
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <!-- Column axis label -->
+        <div class="attn-axis-label" style="margin-bottom:8px;">Key (who is being looked at) →</div>
+
+        <div style="display:flex; align-items:flex-start; gap:0;">
+          <!-- Row axis label (rotated) -->
+          <div style="writing-mode: vertical-lr; transform: rotate(180deg); margin-right:8px;" class="attn-axis-label">
+            ← Query (who is looking)
+          </div>
+
+          <!-- The grid -->
+          <div>
+            <!-- Column labels -->
+            <div id="attn-col-labels" style="display:flex; gap:2px; margin-left:44px; margin-bottom:2px;"></div>
+
+            <!-- Matrix rows -->
+            <div id="attn-matrix" style="display:flex; flex-direction:column; gap:2px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info box -->
+    <div class="attn-info-box" id="attn-info">
+      <h4>Hover over a cell in the matrix</h4>
+      <p>See which tokens can attend to which — and understand how actions get conditioned on observations.</p>
+    </div>
+
+    <div class="callout callout-green" style="margin-top:24px;">
+      <strong>The "aha" moment:</strong> Look at the bottom-left block (terracotta). Every action token can attend to <em>every</em> observation token. This IS the conditioning — instead of a single vector, each action token directly queries the observations it needs through attention.
+    </div>
+
+    <div style="margin-top:24px;">
+      <img src="images/concept_attention_mask.png" class="concept-img" alt="Attention mask block structure"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 5: ATTENTION BEAMS             -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-beams">
+  <div class="container">
+    <div class="section-num">5</div>
+    <h2>Watching Attention in Action</h2>
+    <p class="muted">Click on any <strong>action token</strong> below to see which observation tokens it attends to. The beam thickness shows attention weight.</p>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div class="beam-viz" id="beam-viz">
+        <!-- Top row: observation tokens -->
+        <div class="beam-row top" id="beam-obs-row" style="padding-top:20px;">
+          <div class="beam-token image" data-bidx="0">I<sub>1</sub></div>
+          <div class="beam-token image" data-bidx="1">I<sub>2</sub></div>
+          <div class="beam-token image" data-bidx="2">I<sub>3</sub></div>
+          <div class="beam-token image" data-bidx="3">I<sub>4</sub></div>
+          <div class="beam-separator"></div>
+          <div class="beam-token language" data-bidx="4">L<sub>1</sub></div>
+          <div class="beam-token language" data-bidx="5">L<sub>2</sub></div>
+          <div class="beam-token language" data-bidx="6">L<sub>3</sub></div>
+          <div class="beam-separator"></div>
+          <div class="beam-token state" data-bidx="7">S<sub>1</sub></div>
+          <div class="beam-token state" data-bidx="8">S<sub>2</sub></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-around; padding:0 40px; position:relative; z-index:2;">
+          <div class="beam-group-label" style="flex:1;">Image Tokens</div>
+          <div class="beam-group-label" style="flex:0.7;">Language</div>
+          <div class="beam-group-label" style="flex:0.4;">State</div>
+        </div>
+
+        <!-- Bottom row: action tokens -->
+        <div style="margin-top:80px;">
+          <div class="beam-row" id="beam-act-row">
+            <div class="beam-token action" data-bidx="9" onclick="selectBeamAction(9)">A<sub>1</sub></div>
+            <div class="beam-token action" data-bidx="10" onclick="selectBeamAction(10)">A<sub>2</sub></div>
+            <div class="beam-token action" data-bidx="11" onclick="selectBeamAction(11)">A<sub>3</sub></div>
+            <div class="beam-token action" data-bidx="12" onclick="selectBeamAction(12)">A<sub>4</sub></div>
+          </div>
+          <div class="beam-group-label">Action Tokens — click one!</div>
+        </div>
+
+        <!-- SVG overlay for beams -->
+        <canvas class="beam-canvas" id="beam-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="attn-info-box" id="beam-info" style="margin-top:20px;">
+      <h4>Click an action token</h4>
+      <p>See the attention connections — each action token selectively attends to the observation tokens it needs.</p>
+    </div>
+
+    <div style="margin-top:24px;">
+      <img src="images/concept_attention_flow.png" class="concept-img" alt="Attention flow between tokens"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 6: COMPARISON                  -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-compare">
+  <div class="container">
+    <div class="section-num">6</div>
+    <h2>Side by Side: Two Ways to Condition</h2>
+    <p class="muted">Both approaches follow the same two-step framework. The difference is in <em>how</em> observations reach the actions.</p>
+
+    <div class="two-col">
+      <div class="compare-card old">
+        <h3 style="color:var(--accent3);">Global Conditioning Vector</h3>
+        <p class="small muted">(Diffusion Policy)</p>
+        <div class="compare-flow">
+          <div class="compare-flow-box" style="background:var(--tok-image-bg);">Camera Image</div>
+          <div class="compare-flow-box" style="background:var(--tok-state-bg);">Robot State</div>
+          <div class="compare-flow-box" style="background:var(--tok-lang-bg);">Timestep</div>
+          <div class="compare-flow-arrow">↓ compress ↓</div>
+          <div class="compare-flow-box" style="background:rgba(212,84,58,0.1); border-color:var(--accent3); font-weight:700; font-size:0.95rem;">
+            One Vector <span class="mono" style="font-size:0.85rem;">c</span>
+          </div>
+          <div class="compare-flow-arrow">↓</div>
+          <div class="compare-flow-box">Neural Network</div>
+        </div>
+        <div class="compare-verdict">Information bottleneck — details get lost</div>
+      </div>
+
+      <div class="compare-card new">
+        <h3 style="color:var(--green);">Token Attention</h3>
+        <p class="small muted">(Pi Zero approach)</p>
+        <div class="compare-flow">
+          <div class="compare-flow-box" style="background:var(--tok-image-bg);">Camera → Image Tokens</div>
+          <div class="compare-flow-box" style="background:var(--tok-lang-bg);">Language → Language Tokens</div>
+          <div class="compare-flow-box" style="background:var(--tok-state-bg);">State → State Tokens</div>
+          <div class="compare-flow-arrow">↓ attention ↓</div>
+          <div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap;">
+            <div class="compare-flow-box" style="background:rgba(139,111,78,0.12); border-color:var(--accent2); width:auto; padding:6px 8px; font-weight:600; font-size:0.8rem;">A<sub>1</sub></div>
+            <div class="compare-flow-box" style="background:rgba(139,111,78,0.12); border-color:var(--accent2); width:auto; padding:6px 8px; font-weight:600; font-size:0.8rem;">A<sub>2</sub></div>
+            <div class="compare-flow-box" style="background:rgba(139,111,78,0.12); border-color:var(--accent2); width:auto; padding:6px 8px; font-weight:600; font-size:0.8rem;">A<sub>3</sub></div>
+            <div class="compare-flow-box" style="background:rgba(139,111,78,0.12); border-color:var(--accent2); width:auto; padding:6px 8px; font-weight:600; font-size:0.8rem;">A<sub>4</sub></div>
+          </div>
+          <div class="compare-flow-arrow">↓</div>
+          <div class="compare-flow-box">Neural Network</div>
+        </div>
+        <div class="compare-verdict">Fine-grained access — each action attends selectively</div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;">
+      <img src="images/concept_comparison.png" class="concept-img" alt="Side-by-side comparison"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  SECTION 7: SUMMARY                     -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="sec-summary">
+  <div class="container">
+    <div class="section-num">7</div>
+    <h2>The Key Takeaway</h2>
+
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="num">1</div>
+        <h4>Observations Become Tokens</h4>
+        <p>Images, language instructions, and robot state are each converted into sequences of tokens — not compressed into one vector.</p>
+      </div>
+      <div class="summary-item">
+        <div class="num">2</div>
+        <h4>Actions Are Tokens Too</h4>
+        <p>The predicted actions are also tokens in the same sequence. They sit alongside the observation tokens.</p>
+      </div>
+      <div class="summary-item">
+        <div class="num">3</div>
+        <h4>Attention IS Conditioning</h4>
+        <p>Action tokens attend to observation tokens through the attention mechanism. This is how observations influence actions — no bottleneck.</p>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center; padding:40px;">
+      <p style="font-size:1.1rem; font-weight:500; max-width:640px; margin:0 auto 16px;">
+        The <strong>two-step framework</strong> stays the same.<br>
+        The <strong>conditioning mechanism</strong> evolves:<br>
+        <span style="color:var(--accent3); text-decoration:line-through;">single vector</span>
+        → <span style="color:var(--green); font-weight:700;">token attention</span>
+      </p>
+      <p class="small muted">More flexible. More powerful. No information bottleneck.</p>
+    </div>
+
+    <div style="margin-top:32px;">
+      <img src="images/concept_key_insight.png" class="concept-img" alt="Key insight: attention is conditioning"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="padding:40px 0; text-align:center; color:var(--muted); font-size:0.8rem; border-top:1px solid var(--border);">
+  <div class="container">
+    From Conditioning Vectors to Token Attention — Interactive Visualization
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  JAVASCRIPT                                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+// ═══════════════════════════════════════
+//  TOKEN DATA
+// ═══════════════════════════════════════
+var TOKENS = [
+  { id: 'I1', type: 'image', label: 'I₁', desc: 'Image patch — top-left quadrant of the camera frame. Contains scene context like the table surface.' },
+  { id: 'I2', type: 'image', label: 'I₂', desc: 'Image patch — top-right quadrant. Might capture the target object (e.g., a cup) position.' },
+  { id: 'I3', type: 'image', label: 'I₃', desc: 'Image patch — bottom-left quadrant. Could show the robot gripper or the source object.' },
+  { id: 'I4', type: 'image', label: 'I₄', desc: 'Image patch — bottom-right quadrant. Shows additional scene context and spatial relationships.' },
+  { id: 'L1', type: 'language', label: 'L₁', desc: 'Language token for "pour" — encodes the action verb, telling the model what kind of task to perform.' },
+  { id: 'L2', type: 'language', label: 'L₂', desc: 'Language token for "water" — specifies the object being manipulated.' },
+  { id: 'L3', type: 'language', label: 'L₃', desc: 'Language token for "into cup" — encodes the target/destination of the action.' },
+  { id: 'S1', type: 'state', label: 'S₁', desc: 'Robot state — current joint positions (shoulder, elbow, wrist angles). Tells the model where the arm is now.' },
+  { id: 'S2', type: 'state', label: 'S₂', desc: 'Robot state — gripper state and end-effector position. Encodes how open the gripper is and where it is in space.' },
+  { id: 'A1', type: 'action', label: 'A₁', desc: 'Action token 1 — the first predicted action in the sequence. Represents the immediate next move the robot should make.' },
+  { id: 'A2', type: 'action', label: 'A₂', desc: 'Action token 2 — the second predicted action. Plans one step further into the future.' },
+  { id: 'A3', type: 'action', label: 'A₃', desc: 'Action token 3 — the third predicted action. Extends the planning horizon.' },
+  { id: 'A4', type: 'action', label: 'A₄', desc: 'Action token 4 — the final predicted action. The furthest future step in this chunk.' },
+];
+
+var NUM_OBS = 9;  // I1-I4 + L1-L3 + S1-S2
+var NUM_ACT = 4;  // A1-A4
+var TOTAL = TOKENS.length;
+
+// Attention mask: mask[i][j] = 1 means token i (query) can attend to token j (key)
+var MASK = [];
+for (var i = 0; i < TOTAL; i++) {
+  MASK[i] = [];
+  for (var j = 0; j < TOTAL; j++) {
+    if (i < NUM_OBS) {
+      // Observation tokens: attend to all observation tokens, NOT to action tokens
+      MASK[i][j] = (j < NUM_OBS) ? 1 : 0;
+    } else {
+      // Action tokens: attend to ALL tokens (observations + actions)
+      MASK[i][j] = 1;
+    }
+  }
+}
+
+// Simulated attention weights for the beam visualization (per action token)
+// Each action token has different attention patterns to make it interesting
+var BEAM_WEIGHTS = {
+  9:  [0.25, 0.15, 0.20, 0.10, 0.08, 0.05, 0.07, 0.06, 0.04],  // A1 focuses on image
+  10: [0.10, 0.12, 0.08, 0.15, 0.20, 0.15, 0.10, 0.06, 0.04],  // A2 focuses on language
+  11: [0.08, 0.10, 0.15, 0.12, 0.10, 0.08, 0.12, 0.15, 0.10],  // A3 balanced
+  12: [0.05, 0.08, 0.10, 0.07, 0.06, 0.04, 0.08, 0.28, 0.24],  // A4 focuses on state
+};
+
+// ═══════════════════════════════════════
+//  SECTION 1: RECAP STEP-THROUGH
+// ═══════════════════════════════════════
+var recapStep = 1;
+
+window.setRecapStep = function(step) {
+  recapStep = step;
+  var cards = document.querySelectorAll('.step-card');
+  cards.forEach(function(c) {
+    c.classList.toggle('active', parseInt(c.dataset.step) === step);
+  });
+
+  // Animate SVG
+  var g1 = document.getElementById('recap-step1-group');
+  var g2 = document.getElementById('recap-step2-group');
+
+  if (step === 1) {
+    g1.style.opacity = '1';
+    g2.style.opacity = '0.2';
+    // Highlight step 1 elements
+    highlightRecapElements(['dp-cam','dp-state','dp-time','dp-encoder','dp-vector'],
+                           ['dp-arr1','dp-arr2','dp-arr3','dp-arr4']);
+  } else {
+    g1.style.opacity = '0.5';
+    g2.style.opacity = '1';
+    highlightRecapElements(['dp-vector','dp-noisy','dp-nn','dp-output'],
+                           ['dp-arr5','dp-arr6','dp-arr7']);
+  }
+};
+
+function highlightRecapElements(boxIds, arrowIds) {
+  // Reset all
+  document.querySelectorAll('.dp-box').forEach(function(el) { el.classList.remove('highlight'); });
+  document.querySelectorAll('.dp-arrow').forEach(function(el) { el.classList.remove('highlight'); });
+  document.querySelectorAll('.dp-vector').forEach(function(el) { el.classList.remove('highlight'); });
+
+  boxIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('highlight');
+  });
+  arrowIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('highlight');
+  });
+}
+
+// Initialize step 1
+setTimeout(function() { setRecapStep(1); }, 100);
+
+// ═══════════════════════════════════════
+//  SECTION 2: APPROACH TOGGLE
+// ═══════════════════════════════════════
+var isNewApproach = false;
+
+window.toggleApproach = function() {
+  isNewApproach = !isNewApproach;
+  var toggle = document.getElementById('approach-toggle');
+  var oldLabel = document.getElementById('toggle-old-label');
+  var newLabel = document.getElementById('toggle-new-label');
+
+  toggle.classList.toggle('on', isNewApproach);
+  oldLabel.classList.toggle('active', !isNewApproach);
+  newLabel.classList.toggle('active', isNewApproach);
+
+  document.getElementById('change-step1-old').style.display = isNewApproach ? 'none' : 'block';
+  document.getElementById('change-step1-new').style.display = isNewApproach ? 'block' : 'none';
+  document.getElementById('change-step2-old').style.display = isNewApproach ? 'none' : 'block';
+  document.getElementById('change-step2-new').style.display = isNewApproach ? 'block' : 'none';
+};
+
+// ═══════════════════════════════════════
+//  SECTION 3: TOKEN EXPLORER
+// ═══════════════════════════════════════
+var selectedToken = -1;
+
+window.selectToken = function(idx) {
+  selectedToken = (selectedToken === idx) ? -1 : idx;
+
+  // Update selection visual
+  document.querySelectorAll('.token-block').forEach(function(el) {
+    el.classList.toggle('selected', parseInt(el.dataset.idx) === selectedToken);
+  });
+
+  // Update detail panel
+  var panel = document.getElementById('token-detail');
+  if (selectedToken >= 0) {
+    var tok = TOKENS[selectedToken];
+    var typeColors = { image: 'var(--tok-image)', language: 'var(--tok-lang)', state: 'var(--tok-state)', action: 'var(--tok-action)' };
+    var typeLabels = { image: 'Image Token', language: 'Language Token', state: 'State Token', action: 'Action Token' };
+    panel.innerHTML = '<h4 style="color:' + typeColors[tok.type] + ';">' + tok.label + ' — ' + typeLabels[tok.type] + '</h4><p>' + tok.desc + '</p>';
+  } else {
+    panel.innerHTML = '<h4 style="color:var(--muted);">Click a token to learn more</h4><p>Each token carries rich information about one piece of the observation or one action step.</p>';
+  }
+};
+
+// ═══════════════════════════════════════
+//  SECTION 4: ATTENTION MATRIX
+// ═══════════════════════════════════════
+function buildAttentionMatrix() {
+  var colLabels = document.getElementById('attn-col-labels');
+  var matrix = document.getElementById('attn-matrix');
+
+  // Build column labels
+  var colHtml = '';
+  for (var j = 0; j < TOTAL; j++) {
+    colHtml += '<div class="attn-col-label ' + TOKENS[j].type + '" data-col="' + j + '">' + TOKENS[j].label + '</div>';
+  }
+  colLabels.innerHTML = colHtml;
+
+  // Build matrix rows
+  var matHtml = '';
+  for (var i = 0; i < TOTAL; i++) {
+    matHtml += '<div style="display:flex;gap:2px;">';
+    // Row label
+    matHtml += '<div class="attn-row-label ' + TOKENS[i].type + '" data-row="' + i + '">' + TOKENS[i].label + '</div>';
+    // Cells
+    for (var j = 0; j < TOTAL; j++) {
+      var cellType;
+      if (MASK[i][j] === 0) {
+        cellType = 'blocked';
+      } else if (i < NUM_OBS && j < NUM_OBS) {
+        cellType = 'obs-obs';
+      } else if (i >= NUM_OBS && j < NUM_OBS) {
+        cellType = 'act-obs';
+      } else {
+        cellType = 'act-act';
+      }
+      matHtml += '<div class="attn-cell ' + cellType + '" data-row="' + i + '" data-col="' + j + '" data-allowed="' + MASK[i][j] + '"></div>';
+    }
+    matHtml += '</div>';
+  }
+  matrix.innerHTML = matHtml;
+
+  // Add hover listeners
+  var cells = matrix.querySelectorAll('.attn-cell');
+  cells.forEach(function(cell) {
+    cell.addEventListener('mouseenter', function() {
+      var row = parseInt(cell.dataset.row);
+      var col = parseInt(cell.dataset.col);
+      highlightAttention(row, col);
+    });
+    cell.addEventListener('mouseleave', function() {
+      clearAttentionHighlight();
+    });
+  });
+}
+
+function highlightAttention(queryIdx, keyIdx) {
+  var allCells = document.querySelectorAll('.attn-cell');
+  var allRowLabels = document.querySelectorAll('.attn-row-label');
+  var allColLabels = document.querySelectorAll('.attn-col-label');
+
+  // Dim all cells
+  allCells.forEach(function(c) { c.classList.remove('active', 'dimmed', 'highlighted'); c.classList.add('dimmed'); });
+  allRowLabels.forEach(function(l) { l.classList.remove('highlight'); });
+  allColLabels.forEach(function(l) { l.classList.remove('highlight'); });
+
+  // Highlight the row (what this query attends to)
+  allCells.forEach(function(c) {
+    var r = parseInt(c.dataset.row);
+    var col = parseInt(c.dataset.col);
+    if (r === queryIdx) {
+      c.classList.remove('dimmed');
+      c.classList.add('active');
+    }
+    if (r === queryIdx && col === keyIdx) {
+      c.classList.add('highlighted');
+    }
+  });
+
+  // Highlight labels
+  allRowLabels.forEach(function(l) {
+    if (parseInt(l.dataset.row) === queryIdx) l.classList.add('highlight');
+  });
+  allColLabels.forEach(function(l) {
+    if (parseInt(l.dataset.col) === keyIdx) l.classList.add('highlight');
+  });
+
+  // Update info box
+  var info = document.getElementById('attn-info');
+  var query = TOKENS[queryIdx];
+  var key = TOKENS[keyIdx];
+  var allowed = MASK[queryIdx][keyIdx] === 1;
+
+  if (allowed) {
+    var reason = '';
+    if (queryIdx >= NUM_OBS && keyIdx < NUM_OBS) {
+      reason = 'This is how the action gets <strong>conditioned</strong> on the observation — through attention!';
+    } else if (queryIdx < NUM_OBS && keyIdx < NUM_OBS) {
+      reason = 'Observation tokens freely attend to each other to build rich context.';
+    } else if (queryIdx >= NUM_OBS && keyIdx >= NUM_OBS) {
+      reason = 'Action tokens attend to other actions for temporal coherence.';
+    }
+    info.innerHTML = '<h4 style="color:var(--green);">' + query.label + ' can attend to ' + key.label + ' ✓</h4><p>' + reason + '</p>';
+  } else {
+    info.innerHTML = '<h4 style="color:var(--accent3);">' + query.label + ' cannot attend to ' + key.label + ' ✗</h4><p>Observation tokens cannot see action tokens. This prevents the observations from being "contaminated" by action predictions. Information flows one way: observations → actions.</p>';
+  }
+}
+
+function clearAttentionHighlight() {
+  var allCells = document.querySelectorAll('.attn-cell');
+  allCells.forEach(function(c) { c.classList.remove('active', 'dimmed', 'highlighted'); });
+  document.querySelectorAll('.attn-row-label').forEach(function(l) { l.classList.remove('highlight'); });
+  document.querySelectorAll('.attn-col-label').forEach(function(l) { l.classList.remove('highlight'); });
+
+  document.getElementById('attn-info').innerHTML = '<h4>Hover over a cell in the matrix</h4><p>See which tokens can attend to which — and understand how actions get conditioned on observations.</p>';
+}
+
+buildAttentionMatrix();
+
+// ═══════════════════════════════════════
+//  SECTION 5: ATTENTION BEAMS
+// ═══════════════════════════════════════
+var selectedBeamAction = -1;
+var beamAnimFrame = null;
+
+window.selectBeamAction = function(idx) {
+  selectedBeamAction = (selectedBeamAction === idx) ? -1 : idx;
+  updateBeamViz();
+};
+
+function updateBeamViz() {
+  // Update token visuals
+  var obsToks = document.querySelectorAll('#beam-obs-row .beam-token');
+  var actToks = document.querySelectorAll('#beam-act-row .beam-token');
+
+  actToks.forEach(function(t) {
+    var bidx = parseInt(t.dataset.bidx);
+    t.classList.toggle('selected', bidx === selectedBeamAction);
+    t.classList.remove('faded');
+  });
+
+  obsToks.forEach(function(t) {
+    t.classList.remove('faded', 'selected');
+  });
+
+  // Update info
+  var info = document.getElementById('beam-info');
+  if (selectedBeamAction >= 0) {
+    var tok = TOKENS[selectedBeamAction];
+    var weights = BEAM_WEIGHTS[selectedBeamAction];
+    // Find top 3 attended tokens
+    var indexed = weights.map(function(w, i) { return { w: w, i: i }; });
+    indexed.sort(function(a, b) { return b.w - a.w; });
+    var top3 = indexed.slice(0, 3).map(function(x) { return TOKENS[x.i].label + ' (' + Math.round(x.w * 100) + '%)'; }).join(', ');
+
+    info.innerHTML = '<h4 style="color:var(--tok-action);">' + tok.label + ' Attention Pattern</h4><p>Strongest attention to: ' + top3 + '. Each action token learns to focus on the most relevant observations for its specific timestep.</p>';
+  } else {
+    info.innerHTML = '<h4>Click an action token</h4><p>See the attention connections — each action token selectively attends to the observation tokens it needs.</p>';
+  }
+
+  // Animate beams
+  drawBeams();
+}
+
+function drawBeams() {
+  var canvas = document.getElementById('beam-canvas');
+  var viz = document.getElementById('beam-viz');
+  canvas.width = viz.offsetWidth;
+  canvas.height = viz.offsetHeight;
+
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (selectedBeamAction < 0) return;
+
+  var actTok = document.querySelector('#beam-act-row .beam-token[data-bidx="' + selectedBeamAction + '"]');
+  var obsToks = document.querySelectorAll('#beam-obs-row .beam-token');
+
+  if (!actTok) return;
+
+  var vizRect = viz.getBoundingClientRect();
+  var actRect = actTok.getBoundingClientRect();
+  var ax = actRect.left + actRect.width / 2 - vizRect.left;
+  var ay = actRect.top - vizRect.top;
+
+  var weights = BEAM_WEIGHTS[selectedBeamAction];
+  var maxW = Math.max.apply(null, weights);
+
+  obsToks.forEach(function(ot, idx) {
+    var w = weights[idx];
+    if (w < 0.02) return;
+
+    var oRect = ot.getBoundingClientRect();
+    var ox = oRect.left + oRect.width / 2 - vizRect.left;
+    var oy = oRect.top + oRect.height - vizRect.top;
+
+    // Draw beam
+    var alpha = 0.15 + (w / maxW) * 0.6;
+    var lineWidth = 1 + (w / maxW) * 8;
+
+    // Color based on token type
+    var colors = {
+      image: 'rgba(194,120,92,' + alpha + ')',
+      language: 'rgba(232,168,56,' + alpha + ')',
+      state: 'rgba(106,154,91,' + alpha + ')',
+    };
+    var tokType = TOKENS[idx].type;
+    ctx.strokeStyle = colors[tokType] || 'rgba(139,111,78,' + alpha + ')';
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+
+    // Curved beam
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    var midY = (ay + oy) / 2;
+    var cpx = (ax + ox) / 2;
+    ctx.quadraticCurveTo(cpx, midY - 20, ox, oy);
+    ctx.stroke();
+
+    // Glow effect for strong connections
+    if (w / maxW > 0.5) {
+      ctx.strokeStyle = colors[tokType].replace(alpha + '', (alpha * 0.3) + '');
+      ctx.lineWidth = lineWidth + 6;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.quadraticCurveTo(cpx, midY - 20, ox, oy);
+      ctx.stroke();
+    }
+
+    // Weight label
+    var pct = Math.round(w * 100);
+    if (pct >= 8) {
+      var lx = (ax + ox) / 2;
+      var ly = midY - 10;
+      ctx.font = '600 10px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(58,48,37,0.7)';
+      ctx.textAlign = 'center';
+      ctx.fillText(pct + '%', lx, ly);
+    }
+  });
+}
+
+// Redraw beams on resize
+window.addEventListener('resize', function() {
+  if (selectedBeamAction >= 0) drawBeams();
+});
+
+// ═══════════════════════════════════════
+//  NAVIGATION DOTS
+// ═══════════════════════════════════════
+var sections = ['hero', 'sec-recap', 'sec-change', 'sec-tokens', 'sec-attention', 'sec-beams', 'sec-compare', 'sec-summary'];
+var navContainer = document.getElementById('nav-dots');
+
+sections.forEach(function(id, idx) {
+  var dot = document.createElement('button');
+  dot.className = 'nav-dot';
+  dot.title = id.replace('sec-', '').replace('hero', 'overview');
+  dot.addEventListener('click', function() {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+  });
+  navContainer.appendChild(dot);
+});
+
+function updateNavDots() {
+  var dots = navContainer.querySelectorAll('.nav-dot');
+  var scrollY = window.scrollY + window.innerHeight / 3;
+
+  sections.forEach(function(id, idx) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var top = el.offsetTop;
+    var bottom = top + el.offsetHeight;
+    dots[idx].classList.toggle('active', scrollY >= top && scrollY < bottom);
+  });
+}
+
+window.addEventListener('scroll', updateNavDots);
+updateNavDots();
+
+// ═══════════════════════════════════════
+//  SCROLL ANIMATIONS
+// ═══════════════════════════════════════
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(function(sec) {
+  sec.style.opacity = '0';
+  sec.style.transform = 'translateY(30px)';
+  sec.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(sec);
+});
+
+})();
+</script>
+</body>
+</html>

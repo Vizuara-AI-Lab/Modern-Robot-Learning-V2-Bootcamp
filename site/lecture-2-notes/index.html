@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 2: Vision-Language-Action Models — Modern Robot Learning V2</title>
+<meta name="description" content="Lecture slides, hands-on Colab notebooks, component deep-dives, and interactive visualizers for the VLA lecture.">
+<link rel="icon" href="/vizuara-logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..1000;1,6..12,300..1000&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f5;--surface:#f5f0e8;--card:#ffffff;
+  --accent:#c2785c;--warm:#8b6f4e;--teal:#6a9a5b;
+  --blue:#5a7fa5;--purple:#8a6baa;--text:#3a3025;
+  --muted:#8c7e6f;--border:#e5ddd3;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+h1,h2,h3,h4{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1080px;margin:0 auto;
+  padding:0.75rem 2rem;display:flex;align-items:center;justify-content:space-between;
+}
+.nav-left{display:flex;align-items:center;gap:0.75rem}
+.nav-left img{height:34px;opacity:0.85}
+.nav-left span{font-family:'Caveat',cursive;font-size:1.35rem;color:var(--warm);font-weight:600}
+.nav-links{display:flex;align-items:center;gap:0.75rem}
+.nav-back{
+  font-size:0.9rem;color:var(--muted);text-decoration:none;font-weight:600;
+  display:flex;align-items:center;gap:0.3rem;
+  transition:color 0.2s;
+}
+.nav-back:hover{color:var(--accent)}
+.nav-back svg{width:14px;height:14px}
+
+/* ── HERO ── */
+.hero{
+  max-width:1080px;margin:0 auto;padding:3rem 2rem 2rem;
+}
+.hero-meta{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap}
+.hero-num{font-family:'Caveat',cursive;font-size:1.3rem;color:var(--accent);font-weight:700}
+.hero-date{font-size:0.88rem;color:var(--muted)}
+.hero h1{font-size:3.5rem;color:var(--accent);margin-bottom:0.75rem}
+.hero p{color:var(--muted);max-width:700px;font-size:1.1rem;margin-bottom:1.5rem}
+.hero-tags{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.hero-tags span{
+  background:var(--surface);color:var(--warm);font-size:0.78rem;font-weight:600;
+  padding:0.25rem 0.65rem;border-radius:5px;border:1px solid var(--border);
+}
+.slides-btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  padding:0.7rem 1.5rem;background:var(--accent);color:#fff;
+  font-size:1rem;font-weight:700;border-radius:10px;
+  text-decoration:none;transition:opacity 0.2s;
+}
+.slides-btn:hover{opacity:0.9}
+.slides-btn svg{width:16px;height:16px}
+
+/* ── SECTIONS ── */
+.divider{max-width:1080px;margin:0 auto;padding:0 2rem}
+.divider hr{border:none;border-top:1px solid var(--border)}
+.section{max-width:1080px;margin:0 auto;padding:2rem 2rem 2.5rem}
+.section-title{
+  font-family:'Caveat',cursive;font-size:2.2rem;color:var(--warm);
+  margin-bottom:0.4rem;display:flex;align-items:center;gap:0.5rem;
+}
+.section-desc{color:var(--muted);font-size:0.95rem;margin-bottom:1.25rem}
+
+/* ── NOTEBOOK CARDS ── */
+.nb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
+.nb-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.25rem;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
+}
+.nb-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
+.nb-card .nb-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.nb-card h4{font-size:1.3rem;color:var(--text);margin-bottom:0.3rem;font-family:'Caveat',cursive}
+.nb-card p{color:var(--muted);font-size:0.88rem;flex:1}
+.colab-badge{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  margin-top:0.75rem;font-size:0.82rem;font-weight:700;color:var(--accent);
+}
+.colab-badge svg{width:14px;height:14px;transition:transform 0.2s}
+.nb-card:hover .colab-badge svg{transform:translateX(3px)}
+
+/* ── COMPONENT CARDS ── */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.75rem}
+.comp-card{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:0.9rem;text-align:center;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.comp-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(58,48,37,0.08)}
+.comp-card .comp-icon{font-size:1.3rem;margin-bottom:0.35rem}
+.comp-card h4{font-size:1.1rem;color:var(--text);font-family:'Caveat',cursive}
+
+/* ── VISUALIZER CARDS ── */
+.viz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.viz-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.25rem;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
+}
+.viz-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
+.viz-card .viz-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.viz-card h4{font-size:1.3rem;color:var(--text);margin-bottom:0.3rem;font-family:'Caveat',cursive}
+.viz-card p{color:var(--muted);font-size:0.88rem;flex:1}
+.viz-badge{
+  display:inline-block;margin-bottom:0.5rem;
+  font-family:'Nunito Sans',sans-serif;font-size:0.65rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.05em;
+  padding:0.2rem 0.5rem;border-radius:4px;width:fit-content;
+}
+.viz-arrow{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  margin-top:0.6rem;font-size:0.82rem;font-weight:700;color:var(--accent);
+}
+.viz-arrow svg{width:14px;height:14px;transition:transform 0.2s}
+.viz-card:hover .viz-arrow svg{transform:translateX(3px)}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:auto;text-align:center;padding:1.5rem 2rem;color:var(--muted);font-size:0.78rem;
+  border-top:1px solid var(--border);
+}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .hero h1{font-size:2.6rem}
+  .hero{padding:2rem 1.25rem 1.5rem}
+  .section,.divider{padding-left:1.25rem;padding-right:1.25rem}
+  nav .nav-inner{padding:0.6rem 1.25rem}
+  .nb-grid{grid-template-columns:1fr}
+  .comp-grid{grid-template-columns:repeat(2,1fr)}
+  .viz-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-left">
+      <img src="/vizuara-logo.png" alt="Vizuara">
+      <span>Modern Robot Learning V2</span>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="nav-back">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 13l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        All Lectures
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-meta">
+    <span class="hero-num">Lecture 2</span>
+    <span class="hero-date">March 28, 2026</span>
+  </div>
+  <h1>Vision-Language-Action Models</h1>
+  <p>From duct tape to transformers — trace how images, language, and actions fuse inside a VLA. Build every component from scratch: ViT, transformer, VLM, and a complete MiniVLA.</p>
+  <div class="hero-tags">
+    <span>SigLIP / ViT</span>
+    <span>Transformer</span>
+    <span>VLM</span>
+    <span>Flow Matching</span>
+    <span>pi0</span>
+  </div>
+  <a href="/lecture-2/" class="slides-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Open Lecture Slides
+  </a>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Practical Hands-on Notebooks -->
+<div class="section">
+  <h2 class="section-title">📓 Practical Hands-on Notebooks</h2>
+  <p class="section-desc">Build every component of a Vision-Language-Action model from scratch — from language encoding to a complete MiniVLA.</p>
+  <div class="nb-grid">
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-2-vla/notebooks/Language_Encoding_Levels.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📗</div>
+      <h4>Language Encoding Levels</h4>
+      <p>From bag-of-words to Word2Vec to GRU — understand how text representations evolve for robot instruction following.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-2-vla/notebooks/Transformer_From_Scratch.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📘</div>
+      <h4>Transformer From Scratch</h4>
+      <p>Build a full transformer block — multi-head attention, QKV projections, feed-forward networks, and layer norm.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-2-vla/notebooks/Vision_Transformer_From_Scratch.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📙</div>
+      <h4>Vision Transformer (ViT)</h4>
+      <p>Patch embedding, positional encoding, and self-attention on images — build SigLIP's visual encoder from first principles.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-2-vla/notebooks/Vision_Language_Model_From_Scratch.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📕</div>
+      <h4>Vision-Language Model</h4>
+      <p>Fuse visual tokens with text tokens into a unified VLM — the PaliGemma backbone that powers pi0.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-2-vla/notebooks/Build_MiniVLA.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">🤖</div>
+      <h4>Build MiniVLA</h4>
+      <p>Assemble the complete VLA — visual encoder, language model, and action expert with flow matching into one policy.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Component Deep-Dives (Manim Animations) -->
+<div class="section">
+  <h2 class="section-title">🎬 Component Animations</h2>
+  <p class="section-desc">Manim-animated deep-dives into key VLA components — visual explanations embedded directly in the lecture slides.</p>
+  <div class="comp-grid">
+    <a href="/lecture-2/#/bag-of-words" class="comp-card">
+      <div class="comp-icon">📝</div>
+      <h4>Bag of Words</h4>
+    </a>
+    <a href="/lecture-2/#/word2vec" class="comp-card">
+      <div class="comp-icon">🗺️</div>
+      <h4>Word2Vec Space</h4>
+    </a>
+    <a href="/lecture-2/#/gru" class="comp-card">
+      <div class="comp-icon">🔁</div>
+      <h4>GRU Processing</h4>
+    </a>
+    <a href="/lecture-2/#/attention" class="comp-card">
+      <div class="comp-icon">🎯</div>
+      <h4>Attention Scores</h4>
+    </a>
+    <a href="/lecture-2/#/multi-head" class="comp-card">
+      <div class="comp-icon">👁️</div>
+      <h4>Multi-Head Attn</h4>
+    </a>
+    <a href="/lecture-2/#/next-token" class="comp-card">
+      <div class="comp-icon">🔮</div>
+      <h4>Next-Token Pred</h4>
+    </a>
+    <a href="/lecture-2/#/vlm" class="comp-card">
+      <div class="comp-icon">🧠</div>
+      <h4>VLM Processing</h4>
+    </a>
+    <a href="/lecture-2/#/mini-vla" class="comp-card">
+      <div class="comp-icon">🤖</div>
+      <h4>MiniVLA Pipeline</h4>
+    </a>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Interactive Visualizers -->
+<div class="section">
+  <h2 class="section-title">🎲 Interactive Visualizers</h2>
+  <p class="section-desc">Explore the pi0 VLA architecture through animated 3D walkthroughs and interactive 2D visualizers.</p>
+  <div class="viz-grid">
+    <a href="https://pi0-viz-hub.vercel.app" class="viz-card" target="_blank" rel="noopener">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Hub · All Steps</span>
+      <div class="viz-icon">🏠</div>
+      <h4>pi0 Viz Hub</h4>
+      <p>Central hub linking all four pi0 architecture steps — visual encoding, VLM backbone, action expert, and input assembly.</p>
+      <span class="viz-arrow">
+        Open Hub
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://pi0-viz-hub.vercel.app/step1-siglip/" class="viz-card" target="_blank" rel="noopener">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Three.js · 3D</span>
+      <div class="viz-icon">👁️</div>
+      <h4>Step 1: SigLIP Visual Encoding</h4>
+      <p>Image patches flow through the ViT encoder to produce visual tokens — the first stage of pi0's perception.</p>
+      <span class="viz-arrow">
+        Launch 3D
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://pi0-viz-hub.vercel.app/step2-vlm/" class="viz-card" target="_blank" rel="noopener">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Three.js · 3D</span>
+      <div class="viz-icon">🧠</div>
+      <h4>Step 2: VLM Backbone</h4>
+      <p>Visual tokens merge with text tokens inside PaliGemma — producing fused multimodal embeddings.</p>
+      <span class="viz-arrow">
+        Launch 3D
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://pi0-viz-hub.vercel.app/step3-action-expert/" class="viz-card" target="_blank" rel="noopener">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Three.js · 3D</span>
+      <div class="viz-icon">🎯</div>
+      <h4>Step 3: Action Expert</h4>
+      <p>Flow matching denoises action tokens — from random noise to precise robot joint commands via velocity fields.</p>
+      <span class="viz-arrow">
+        Launch 3D
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://pi0-viz-hub.vercel.app/step4-input-assembly/" class="viz-card" target="_blank" rel="noopener">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Three.js · 3D</span>
+      <div class="viz-icon">🧩</div>
+      <h4>Step 4: Input Assembly</h4>
+      <p>Three token blocks assemble into one sequence with block-wise attention masking through the shared transformer.</p>
+      <span class="viz-arrow">
+        Launch 3D
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://pi0-token-attention-viz.vercel.app" class="viz-card" target="_blank" rel="noopener">
+      <span class="viz-badge" style="background:#fce4ec;color:#c62828">Interactive · 2D</span>
+      <div class="viz-icon">🔄</div>
+      <h4>Token Attention Explorer</h4>
+      <p>Interactive token-level attention visualization — see how visual, text, and action tokens attend to each other.</p>
+      <span class="viz-arrow">
+        Open
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara AI Labs</a> &middot; Modern Robot Learning from Scratch V2 Bootcamp
+</footer>
+
+</body>
+</html>
