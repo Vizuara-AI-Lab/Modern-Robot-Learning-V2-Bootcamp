@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 3: From VLAs to Real Robots — Modern Robot Learning V2</title>
+<meta name="description" content="Lecture slides, hands-on Colab notebooks, and deployment guides for SmolVLA, Flow Matching, and SO-101 deployment.">
+<link rel="icon" href="/vizuara-logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..1000;1,6..12,300..1000&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f5;--surface:#f5f0e8;--card:#ffffff;
+  --accent:#c2785c;--warm:#8b6f4e;--teal:#6a9a5b;
+  --blue:#5a7fa5;--purple:#8a6baa;--text:#3a3025;
+  --muted:#8c7e6f;--border:#e5ddd3;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+h1,h2,h3,h4{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1080px;margin:0 auto;
+  padding:0.75rem 2rem;display:flex;align-items:center;justify-content:space-between;
+}
+.nav-left{display:flex;align-items:center;gap:0.75rem}
+.nav-left img{height:34px;opacity:0.85}
+.nav-left span{font-family:'Caveat',cursive;font-size:1.35rem;color:var(--warm);font-weight:600}
+.nav-links{display:flex;align-items:center;gap:0.75rem}
+.nav-back{
+  font-size:0.9rem;color:var(--muted);text-decoration:none;font-weight:600;
+  display:flex;align-items:center;gap:0.3rem;
+  transition:color 0.2s;
+}
+.nav-back:hover{color:var(--accent)}
+.nav-back svg{width:14px;height:14px}
+
+/* ── HERO ── */
+.hero{
+  max-width:1080px;margin:0 auto;padding:3rem 2rem 2rem;
+}
+.hero-meta{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap}
+.hero-num{font-family:'Caveat',cursive;font-size:1.3rem;color:var(--accent);font-weight:700}
+.hero-date{font-size:0.88rem;color:var(--muted)}
+.hero h1{font-size:3.5rem;color:var(--accent);margin-bottom:0.75rem}
+.hero p{color:var(--muted);max-width:700px;font-size:1.1rem;margin-bottom:1.5rem}
+.hero-tags{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.hero-tags span{
+  background:var(--surface);color:var(--warm);font-size:0.78rem;font-weight:600;
+  padding:0.25rem 0.65rem;border-radius:5px;border:1px solid var(--border);
+}
+.slides-btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  padding:0.7rem 1.5rem;background:var(--accent);color:#fff;
+  font-size:1rem;font-weight:700;border-radius:10px;
+  text-decoration:none;transition:opacity 0.2s;
+}
+.slides-btn:hover{opacity:0.9}
+.slides-btn svg{width:16px;height:16px}
+
+/* ── SECTIONS ── */
+.divider{max-width:1080px;margin:0 auto;padding:0 2rem}
+.divider hr{border:none;border-top:1px solid var(--border)}
+.section{max-width:1080px;margin:0 auto;padding:2rem 2rem 2.5rem}
+.section-title{
+  font-family:'Caveat',cursive;font-size:2.2rem;color:var(--warm);
+  margin-bottom:0.4rem;display:flex;align-items:center;gap:0.5rem;
+}
+.section-desc{color:var(--muted);font-size:0.95rem;margin-bottom:1.25rem}
+
+/* ── NOTEBOOK CARDS ── */
+.nb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
+.nb-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.25rem;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
+}
+.nb-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
+.nb-card .nb-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.nb-card h4{font-size:1.3rem;color:var(--text);margin-bottom:0.3rem;font-family:'Caveat',cursive}
+.nb-card p{color:var(--muted);font-size:0.88rem;flex:1}
+.colab-badge{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  margin-top:0.75rem;font-size:0.82rem;font-weight:700;color:var(--accent);
+}
+.colab-badge svg{width:14px;height:14px;transition:transform 0.2s}
+.nb-card:hover .colab-badge svg{transform:translateX(3px)}
+
+/* ── COMPONENT CARDS ── */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.75rem}
+.comp-card{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:0.9rem;text-align:center;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.comp-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(58,48,37,0.08)}
+.comp-card .comp-icon{font-size:1.3rem;margin-bottom:0.35rem}
+.comp-card h4{font-size:1.1rem;color:var(--text);font-family:'Caveat',cursive}
+
+/* ── VISUALIZER CARDS ── */
+.viz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.viz-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.25rem;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;
+}
+.viz-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,48,37,0.08)}
+.viz-card .viz-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.viz-card h4{font-size:1.3rem;color:var(--text);margin-bottom:0.3rem;font-family:'Caveat',cursive}
+.viz-card p{color:var(--muted);font-size:0.88rem;flex:1}
+.viz-badge{
+  display:inline-block;margin-bottom:0.5rem;
+  font-family:'Nunito Sans',sans-serif;font-size:0.65rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.05em;
+  padding:0.2rem 0.5rem;border-radius:4px;width:fit-content;
+}
+.viz-arrow{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  margin-top:0.6rem;font-size:0.82rem;font-weight:700;color:var(--accent);
+}
+.viz-arrow svg{width:14px;height:14px;transition:transform 0.2s}
+.viz-card:hover .viz-arrow svg{transform:translateX(3px)}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:auto;text-align:center;padding:1.5rem 2rem;color:var(--muted);font-size:0.78rem;
+  border-top:1px solid var(--border);
+}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .hero h1{font-size:2.6rem}
+  .hero{padding:2rem 1.25rem 1.5rem}
+  .section,.divider{padding-left:1.25rem;padding-right:1.25rem}
+  nav .nav-inner{padding:0.6rem 1.25rem}
+  .nb-grid{grid-template-columns:1fr}
+  .comp-grid{grid-template-columns:repeat(2,1fr)}
+  .viz-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-left">
+      <img src="/vizuara-logo.png" alt="Vizuara">
+      <span>Modern Robot Learning V2</span>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="nav-back">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 13l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        All Lectures
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-meta">
+    <span class="hero-num">Lecture 3</span>
+    <span class="hero-date">April 4, 2026</span>
+  </div>
+  <h1>From VLAs to Real Robots</h1>
+  <p>SmolVLA, Flow Matching &amp; SO-101 Deployment. Go from architecture to hardware — deploy a vision-language-action model on a real robot arm, debug the 10 critical bugs, and run bimanual inference.</p>
+  <div class="hero-tags">
+    <span>SmolVLA</span>
+    <span>OpenVLA</span>
+    <span>Flow Matching</span>
+    <span>SO-101</span>
+    <span>Deployment</span>
+    <span>Bimanual</span>
+  </div>
+  <a href="/lecture-3/" class="slides-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Open Lecture Slides
+  </a>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Practical Hands-on Notebooks -->
+<div class="section">
+  <h2 class="section-title">Practical Hands-on Notebooks</h2>
+  <p class="section-desc">From flow matching math to real-robot deployment — build, debug, and deploy a VLA end-to-end.</p>
+  <div class="nb-grid">
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-3-deploy/notebooks/Flow_Matching_From_Scratch.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📗</div>
+      <h4>Flow Matching From Scratch</h4>
+      <p>Build flow matching from first principles — optimal transport paths, velocity fields, and the connection to diffusion.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-3-deploy/notebooks/Cross_Attention_And_VLA_Architectures.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📘</div>
+      <h4>Cross-Attention & VLA Architectures</h4>
+      <p>Understand cross-attention conditioning and compare VLA architecture choices — from self-attention to cross-attention fusion.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-3-deploy/notebooks/SmolVLA_Efficiency_Tricks.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📙</div>
+      <h4>SmolVLA Efficiency Tricks</h4>
+      <p>PixelShuffle token compression, layer skipping, and async inference — the tricks that make SmolVLA fast enough for real-time.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-3-deploy/notebooks/SmolVLA_Deployment_Simulation.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">📕</div>
+      <h4>SmolVLA Deployment Simulation</h4>
+      <p>Simulate the full deployment pipeline — from recording demonstrations to training, evaluating, and running inference on SO-101.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+    <a href="https://colab.research.google.com/github/Vizuara-AI-Lab/Modern-Robot-Learning-V2-Bootcamp/blob/main/lecture-3-deploy/notebooks/The_10_Bugs_Interactive_Debugging.ipynb" class="nb-card" target="_blank" rel="noopener">
+      <div class="nb-icon">🐛</div>
+      <h4>The 10 Bugs: Interactive Debugging</h4>
+      <p>Walk through the 10 critical bugs we hit deploying SmolVLA on SO-101 — with interactive exercises to find and fix each one.</p>
+      <span class="colab-badge">
+        Open in Colab
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Lecture Parts -->
+<div class="section">
+  <h2 class="section-title">Lecture Outline</h2>
+  <p class="section-desc">Seven parts covering the full journey from architecture to deployment — jump to any section in the slides.</p>
+  <div class="comp-grid">
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🏗️</div>
+      <h4>Open-Source VLAs</h4>
+    </a>
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🌊</div>
+      <h4>Flow Matching</h4>
+    </a>
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🤖</div>
+      <h4>Meet SO-101</h4>
+    </a>
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🚀</div>
+      <h4>Deploy a VLA</h4>
+    </a>
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🐛</div>
+      <h4>10 Critical Bugs</h4>
+    </a>
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🎬</div>
+      <h4>Live Demo</h4>
+    </a>
+    <a href="/lecture-3/" class="comp-card">
+      <div class="comp-icon">🦾</div>
+      <h4>Bimanual Inference</h4>
+    </a>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Demo Videos -->
+<div class="section">
+  <h2 class="section-title">Demo Videos</h2>
+  <p class="section-desc">Real SO-101 bimanual demos from our lab — SmolVLA controlling two arms for box-pass tasks.</p>
+  <div class="viz-grid">
+    <div class="viz-card">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Video</span>
+      <div class="viz-icon">🦾</div>
+      <h4>Bimanual Demo 1</h4>
+      <p>Two SO-101 arms performing a coordinated box-pass task with SmolVLA inference.</p>
+    </div>
+    <div class="viz-card">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Video</span>
+      <div class="viz-icon">🦾</div>
+      <h4>Bimanual Demo 2</h4>
+      <p>Handover variation with different object placement and camera angles.</p>
+    </div>
+    <div class="viz-card">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Video</span>
+      <div class="viz-icon">📦</div>
+      <h4>Bimanual Demo 3</h4>
+      <p>Extended sequence showing recovery behavior and multi-step manipulation.</p>
+    </div>
+    <div class="viz-card">
+      <span class="viz-badge" style="background:#e8f5e9;color:#2e7d32">Video</span>
+      <div class="viz-icon">🎯</div>
+      <h4>Bimanual Demo 4</h4>
+      <p>Language-conditioned pick-and-place with voice control for object selection.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara AI Labs</a> &middot; Modern Robot Learning from Scratch V2 Bootcamp
+</footer>
+
+</body>
+</html>

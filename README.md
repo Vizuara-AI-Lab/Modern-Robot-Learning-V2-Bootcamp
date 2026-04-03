@@ -7,6 +7,8 @@ Slide decks, notebooks, and assets for the **Vizuara Modern Robot Learning V2 Bo
 | # | Topic | Folder |
 |---|-------|--------|
 | 1 | Diffusion Policy: Visuo-Motor Policy Learning via Action Diffusion | [`lecture-1-diffusion-policy/`](lecture-1-diffusion-policy/) |
+| 2 | Vision-Language-Action Models | [`lecture-2-vla/`](lecture-2-vla/) |
+| 3 | From VLAs to Real Robots: SmolVLA, Flow Matching & SO-101 Deployment | [`lecture-3-deploy/`](lecture-3-deploy/) |
 
 ## How to Run a Lecture
 
