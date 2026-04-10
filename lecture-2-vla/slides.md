@@ -103,6 +103,11 @@ css: unocss
   </a>
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 layout: center
 ---
@@ -555,6 +560,11 @@ Think of it like reading a book:
 
 </v-clicks>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # GRU: How It Works
@@ -682,6 +692,11 @@ We'll see how **Transformers** solve this in Part 3 — by letting every word lo
 </div>
 
 </div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -1207,6 +1222,11 @@ So far so good. Let's test it...
 
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Test 1: Same Task, Same Words — It Works!
@@ -1385,6 +1405,11 @@ Vision and language are encoded **separately**, then stapled together. The word 
 </div>
 
 </v-clicks>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -1715,6 +1740,11 @@ Every word broadcasts: "Here's what I am" (**Value**) and "Here's how to find me
 
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Step 1: Create Q, K, V
@@ -1873,6 +1903,16 @@ The output for "picked" is:
 **The GRU had to remember "cup" through a chain of hidden states. Attention connects "picked" directly to "cup" — no matter how far apart they are.**
 
 </div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -2078,6 +2118,11 @@ Each position gets a unique sinusoidal fingerprint. Now "cup" at position 6 is d
 </div>
 
 </v-clicks>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -2728,6 +2773,11 @@ No one programmed these patterns. They **emerge** from training on millions of i
 
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # ViT Sees Shapes — But Does It Understand "Cup"?
@@ -2768,6 +2818,11 @@ We'll solve this in Part 5 — for now, let's see how far we get with a raw ViT 
 
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 <div style="height:1px;"></div>
@@ -2805,6 +2860,11 @@ We'll solve this in Part 5 — for now, let's see how far we get with a raw ViT 
 A VLM can answer "What color is the cup?" by attending between the word "color" and the red pixels. **Cross-modal attention** — the duct tape fix we needed!
 
 </div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -3468,6 +3528,11 @@ Each joint's continuous range gets sliced into 256 bins. The desired angle maps 
 
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Explore: From Conditioning Vectors to Token Attention
@@ -3481,6 +3546,11 @@ Before RT-2, let's understand the key shift: how actions go from receiving a **s
 **Scroll through all 7 sections inside the frame**, or <a href="https://pi0-token-attention-viz.vercel.app/" target="_blank">open full-screen in a new tab</a>. This is the bridge from our mini-VLA's concat+MLP to pi0's token attention.
 
 </div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 layout: center
@@ -4538,6 +4608,11 @@ Merge & repeat × 26 layers
 </div>
 
 </v-clicks>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 

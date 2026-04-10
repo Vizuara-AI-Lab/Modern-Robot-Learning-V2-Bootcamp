@@ -1,0 +1,16 @@
+{
+  "name": "lecture-world-models-part2",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export"
+  },
+  "dependencies": {
+    "@slidev/cli": "^52.14.1",
+    "@slidev/theme-default": "^0.25.0"
+  },
+  "devDependencies": {
+    "playwright-chromium": "^1.58.2"
+  }
+}

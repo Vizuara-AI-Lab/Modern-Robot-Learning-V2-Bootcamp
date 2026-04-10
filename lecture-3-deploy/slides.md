@@ -104,6 +104,46 @@ css: unocss
 </div>
 
 
+
+---
+
+<div style="height:1px;"></div>
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
 ---
 
 <div style="height:1px;"></div>
@@ -832,6 +872,11 @@ Think of it as rearranging 4 adjacent patches into the channel dimension of 1 to
 
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Efficiency Trick 2: Layer Skipping
@@ -1027,6 +1072,11 @@ where $\alpha_{ij} = \text{softmax}(Q_i^{\text{act}} \cdot K_j^{\text{obs}} / \s
 <img src="/figures/cross-attention-conditioning.png" class="rounded-lg mx-auto mt-2" style="max-height:16vh; max-width:75%;" />
 </div>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Efficiency Trick 3: Interleaved Cross-Attention + Self-Attention
@@ -1144,6 +1194,11 @@ Each action token asks: *"What did the previous actions plan?"*
 Each action token alternates: **look at the world** (CA) → **coordinate with neighbors** (SA) → **look at the world** (CA) → **coordinate** (SA). This interleaving runs for 6+ layers, progressively refining the action plan.
 
 </div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -1402,6 +1457,11 @@ Time 500ms:  [Execute chunk N+1: 500ms]
 
 </v-clicks>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Interactive Deep-Dive: SmolVLA Async Inference
@@ -1517,6 +1577,21 @@ In Lecture 2, we mentioned that pi0's Action Expert uses DDPM to generate action
 </div>
 
 </v-clicks>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -2250,6 +2325,11 @@ layout: section
 # Part 3
 ## The Real Implementation — SmolVLA on SO-101
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Our Actual Task: Box-to-Bowl Pick-and-Place
@@ -2302,6 +2382,11 @@ The robot was trained with **literal color names** only ("red bowl", "green bowl
 </div>
 
 </v-clicks>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -2855,6 +2940,11 @@ Note the semantic test: **"ocean"** → the robot goes to the **blue** bowl!
 
 </v-clicks>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 # Voice-Controlled Inference
@@ -3382,6 +3472,11 @@ Robot runs SmolVLA autonomously. When it makes mistakes, **grab the leader arm**
 
 </v-clicks>
 
+
+---
+
+<div style="height:1px;"></div>
+
 ---
 
 <div style="height:1px;"></div>
@@ -3649,6 +3744,11 @@ Both arms grip and move together — folding cloth, lifting trays.
 </div>
 
 </v-clicks>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 
@@ -4016,6 +4116,16 @@ Two SO-101 arms, one SmolVLA policy, 12-DOF coordinated control. 5 demos → 10K
 </div>
 
 </div>
+
+
+---
+
+<div style="height:1px;"></div>
+
+
+---
+
+<div style="height:1px;"></div>
 
 ---
 

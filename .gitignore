@@ -1,8 +1,11 @@
 node_modules/
 dist/
 .DS_Store
+.venv/
 *.mp4
 !lecture-1-diffusion-policy/public/animations/*.mp4
 !lecture-3-deploy/public/videos/*.mp4
 outputs/
 .vercel
+.slidev/
+narration/

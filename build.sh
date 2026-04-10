@@ -41,5 +41,26 @@ cd ..
 echo "==> Copying lecture 3 build"
 cp -r lecture-3-deploy/dist dist/lecture-3
 
+echo "==> Copying lecture 4 thumbnail"
+cp site/lecture-4-thumb.png dist/
+
+echo "==> Building Lecture 4 Part 1 (Slidev)"
+cd lecture-world-models
+npm install
+npx slidev build --base /lecture-4/
+cd ..
+
+echo "==> Copying lecture 4 part 1 build"
+cp -r lecture-world-models/dist dist/lecture-4
+
+echo "==> Building Lecture 4 Part 2 (Slidev)"
+cd lecture-world-models-part2
+npm install
+npx slidev build --base /lecture-4-part2/
+cd ..
+
+echo "==> Copying lecture 4 part 2 build"
+cp -r lecture-world-models-part2/dist dist/lecture-4-part2
+
 echo "==> Done! Output in dist/"
 ls -la dist/
