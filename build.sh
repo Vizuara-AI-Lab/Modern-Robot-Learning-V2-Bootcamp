@@ -47,20 +47,26 @@ cp site/lecture-4-thumb.png dist/
 echo "==> Building Lecture 4 Part 1 (Slidev)"
 cd lecture-world-models
 npm install
-npx slidev build --base /lecture-4/
-cd ..
-
-echo "==> Copying lecture 4 part 1 build"
-cp -r lecture-world-models/dist dist/lecture-4
+if npx slidev build --base /lecture-4/; then
+  cd ..
+  echo "==> Copying lecture 4 part 1 build"
+  cp -r lecture-world-models/dist dist/lecture-4
+else
+  cd ..
+  echo "==> WARN: Lecture 4 Part 1 build failed, skipping"
+fi
 
 echo "==> Building Lecture 4 Part 2 (Slidev)"
 cd lecture-world-models-part2
 npm install
-npx slidev build --base /lecture-4-part2/
-cd ..
-
-echo "==> Copying lecture 4 part 2 build"
-cp -r lecture-world-models-part2/dist dist/lecture-4-part2
+if npx slidev build --base /lecture-4-part2/; then
+  cd ..
+  echo "==> Copying lecture 4 part 2 build"
+  cp -r lecture-world-models-part2/dist dist/lecture-4-part2
+else
+  cd ..
+  echo "==> WARN: Lecture 4 Part 2 build failed, skipping"
+fi
 
 echo "==> Done! Output in dist/"
 ls -la dist/
