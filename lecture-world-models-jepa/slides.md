@@ -1,9 +1,9 @@
 ---
 theme: default
-title: "World Models Part 2: JEPA, V-JEPA 2, LeWorld & DreamZero"
+title: "World Models Part 2: JEPA, V-JEPA 2 & LeWorld"
 info: |
   Lecture — Modern Robot Learning from Scratch V2 Bootcamp
-  Vizuara — JEPA, V-JEPA 2, LeWorld, DreamZero
+  Vizuara — JEPA, V-JEPA 2, LeWorld
 class: text-center
 drawings:
   persist: true
@@ -61,7 +61,7 @@ css: unocss
 
 # World Models Part 2
 
-## JEPA, V-JEPA 2, LeWorld & DreamZero
+## JEPA, V-JEPA 2 & LeWorld
 
 <div class="pt-8">
   <span class="px-4 py-2 rounded-lg text-lg" style="background:#c2785c;color:#fff;font-weight:700;">
@@ -108,19 +108,13 @@ V-JEPA → V-JEPA 2
 LeWorld — tiny end-to-end JEPA
 
 </div>
-<div class="card text-sm" style="border:2px solid var(--claude-accent);">
-
-### Part 5
-DreamZero — joint world-action model
-
-</div>
 </div>
 
 <div class="mt-6 text-center">
 
 **Previously:** DINO-WM, IRIS, DIAMOND, Building a WFM from Scratch
 
-**Today:** LeCun's philosophy → JEPA → V-JEPA 2 → LeWorld → DreamZero
+**Today:** LeCun's philosophy → JEPA → V-JEPA 2 → LeWorld
 
 </div>
 
@@ -131,12 +125,11 @@ DreamZero — joint world-action model
 <div class="mt-4">
 
 ```
-LeCun's Philosophy    JEPA         V-JEPA 2       LeWorld         DreamZero
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━▶
+LeCun's Philosophy    JEPA         V-JEPA 2       LeWorld
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━▶
 
-"Why world         "Predict in     "Scale to       "Tiny end-to-   "Joint world +
- models?"          latent space"   1B params"      end from        action — use
-                                                    pixels"         internet video"
+"Why world         "Predict in     "Scale to       "Tiny end-to-
+ models?"          latent space"   1B params"      end from pixels"
 ```
 
 </div>
@@ -2174,345 +2167,6 @@ LeWM still requires action labels for every training trajectory. It can't use un
 </div>
 </div>
 
-<div class="accent-card mt-3 text-sm text-center">
-<strong>The next question:</strong> What if we could predict actions AND world states <em>together</em> — and leverage unlimited internet video for the world model?
-<br>That's exactly what <strong>DreamZero</strong> does.
-</div>
-
-</div>
-
----
-layout: center
----
-
-# Part 7
-
-## DreamZero — Joint World-Action Model
-
-<div class="mt-4 opacity-60">Imagine and act simultaneously — using internet-scale video</div>
-
----
-
-# The Three Paradigms
-
-<div class="mt-4">
-
-<div class="grid grid-cols-3 gap-4">
-
-<div class="blue-card text-sm">
-<h3>Action-Conditioned</h3>
-
-$x' = f(x, a)$
-
-DINO-WM, IRIS, DIAMOND, LeWorld
-
-**Needs actions** for training → can't use internet video
-
-</div>
-
-<div class="card text-sm">
-<h3>Video-Only</h3>
-
-$x' = f(x)$, then $a = g(x, x')$
-
-DreamGen, 1x WM
-
-**No actions needed** for WM → but two-stage
-
-</div>
-
-<div class="accent-card text-sm">
-<h3>Joint (WAM)</h3>
-
-$(x', a) = f(x)$
-
-**DreamZero**, Fast WAM
-
-**Best of both worlds** — one model, two outputs
-
-**Today's focus**
-
-</div>
-
-</div>
-
-<div class="teal-card mt-4 text-sm text-center">
-<strong>Chris Paxton (2025):</strong> "Joint models generalize better than alternatives" — and they address the biggest limitation of action-conditioned models: the need for expensive action labels.
-</div>
-
-</div>
-
----
-
-# Meet DreamZero
-
-<div class="grid grid-cols-2 gap-6 mt-4">
-<div>
-
-<div class="card text-sm mb-3">
-<strong>Paper:</strong> "DreamZero: A Generalist Joint World-Action Model"<br>
-NVIDIA (Feb 2026), arXiv:2602.15922
-</div>
-
-<div class="accent-card text-sm mb-3">
-<strong>The claim:</strong> One 14B model that jointly denoises future <em>video</em> AND future <em>actions</em> — trained end-to-end with flow matching on robot data.
-</div>
-
-<div class="teal-card text-sm">
-<strong>The result:</strong>
-
-- <strong>62.2%</strong> task progress on AgiBot G1 (seen tasks) vs 27.4% for best VLA
-- <strong>39.5%</strong> on completely unseen tasks (vs 16.3% for VLAs) — 2.4× gap
-- <strong>49.0%</strong> on DROID-Franka (vs 33% for pi-0.5, 31% for GR00T N1.6)
-- <strong>7 Hz</strong> real-time closed-loop control
-</div>
-
-</div>
-<div>
-
-### Why it matters
-
-<div class="blue-card text-sm mb-3">
-DreamZero is the <strong>first</strong> robot foundation model that treats world modeling and action generation as <strong>one joint distribution</strong>, initialized from a web-scale video diffusion backbone (Wan2.1-I2V-14B).
-</div>
-
-<div class="card text-sm mb-3">
-It shows the <strong>WAM paradigm works at scale</strong>: a single model can imagine the future <em>and</em> decide what to do, beating specialized VLAs by 2×+ on generalization.
-</div>
-
-</div>
-</div>
-
----
-
-# DreamZero Architecture
-
-<div class="flex justify-center items-start mt-2" style="padding-top:0.5rem;">
-<img src="/figures/dreamzero-architecture.png" class="rounded-lg" style="max-height:72vh; max-width:92%;" />
-</div>
-
----
-
-# What's Inside the 14B Backbone?
-
-<div class="grid grid-cols-2 gap-6 mt-4">
-<div>
-
-### Three Input Streams
-
-<div class="teal-card text-sm mb-3">
-<strong>1. Visual context</strong><br>
-Recent camera frames → VAE encoder (frozen) → visual latent tokens $z_{ctx}$
-</div>
-
-<div class="blue-card text-sm mb-3">
-<strong>2. Language</strong><br>
-Task instruction ("pick up the red cup") → text encoder (frozen) → text tokens $c$
-</div>
-
-<div class="accent-card text-sm mb-3">
-<strong>3. Robot state</strong><br>
-Proprioception (joint angles, gripper) → small state encoder (trained) → state tokens $q$
-</div>
-
-</div>
-<div>
-
-### The Shared Backbone
-
-<div class="card text-sm mb-3">
-<strong>Wan2.1-I2V-14B-480P</strong> — a 14 billion parameter image-to-video Diffusion Transformer, <strong>initialized from web-scale video pre-training</strong>.<br><br>
-All DiT blocks are fine-tuned end-to-end. This is not a frozen backbone with LoRA — the entire 14B moves.
-</div>
-
-### Two Output Heads
-
-<div class="teal-card text-sm mb-2">
-<strong>Video head</strong> → predicted future frames (noisy video latents denoised)
-</div>
-
-<div class="accent-card text-sm">
-<strong>Action head</strong> → predicted action chunk $a_1 \ldots a_K$ (denoised jointly with video)
-</div>
-
-</div>
-</div>
-
----
-
-# The Joint Formulation
-
-<div class="flex justify-center items-start mt-2" style="padding-top:0.5rem;">
-<img src="/figures/dreamzero-joint-formulation.png" class="rounded-lg" style="max-height:70vh; max-width:90%;" />
-</div>
-
----
-
-# Why Joint Beats Separate
-
-<div class="grid grid-cols-2 gap-6 mt-4">
-<div>
-
-<div class="card text-sm mb-3">
-<strong>Direct VLA:</strong> $\pi(a \mid o, \ell)$<br>
-Learns <em>what</em> to do, but nothing about <em>how the world evolves</em>. No physics understanding baked in.
-</div>
-
-<div class="card text-sm mb-3">
-<strong>Video WM + Inverse dynamics:</strong><br>
-$x' = f(x), \quad a = g(x, x')$<br>
-Two stages. The inverse dynamics model is lossy. Errors compound.
-</div>
-
-<div class="accent-card text-sm mb-3">
-<strong>DreamZero (joint):</strong>
-$$\pi(\text{vid}, \text{act} \mid o, \ell, q) = \pi(\text{vid} \mid o, \ell, q) \cdot \pi(\text{act} \mid \text{vid}, q)$$
-<br>
-One model, one set of weights. Actions are <em>conditioned on predicted video</em> — implicit inverse dynamics.
-</div>
-
-</div>
-<div>
-
-### The punchline
-
-<div class="teal-card text-sm mb-3">
-Because the action head is conditioned on the predicted video, <strong>the model must learn physics in order to produce good actions</strong>.
-</div>
-
-<div class="blue-card text-sm mb-3">
-And because video and action share the backbone, <strong>the physics learned for video prediction immediately helps action prediction</strong>.
-</div>
-
-<div class="accent-card text-sm">
-<strong>Empirical result:</strong> 2.4× better generalization to unseen tasks than the best VLA baselines — with the same action data.
-</div>
-
-</div>
-</div>
-
----
-
-# Autoregressive Chunks + KV Cache
-
-<div class="flex justify-center items-start mt-2" style="padding-top:0.5rem;">
-<img src="/figures/dreamzero-chunks.png" class="rounded-lg" style="max-height:70vh; max-width:92%;" />
-</div>
-
----
-
-# DreamZero-Flash: 7 Hz Real-Time
-
-<div class="grid grid-cols-2 gap-6 mt-4">
-<div>
-
-<div class="card text-sm mb-3">
-A 14B DiT doing 50 denoising steps per chunk is <strong>way too slow</strong> for real-time robot control. DreamZero-Flash is the inference-time distillation that makes it work.
-</div>
-
-<div class="blue-card text-sm mb-3">
-<strong>Step 1 — Beta-distribution noise schedule</strong><br>
-Instead of uniform $t \sim U(0,1)$, sample from $\text{Beta}(\alpha, \beta)$ skewed toward low noise.
-</div>
-
-<div class="teal-card text-sm mb-3">
-<strong>Step 2 — Few-step distillation</strong><br>
-Progressive distillation: train a student to match the teacher's trajectory in fewer steps.
-</div>
-
-<div class="accent-card text-sm">
-<strong>Result:</strong> <strong>38× speedup</strong> over naive sampling → <strong>7 Hz closed-loop control</strong> on real robots, even with a 14B backbone.
-</div>
-
-</div>
-<div>
-
-### Why this matters
-
-<div class="card text-sm mb-3">
-7 Hz is the magic number for manipulation: fast enough for visuomotor feedback, slow enough that the 14B model can run on a single H100.
-</div>
-
-<div class="teal-card text-sm mb-3">
-Prior video-action models (UniPi, DreamGen) had to cheat — run the video model open-loop and execute many actions between predictions. DreamZero doesn't: every action chunk is re-conditioned on a fresh observation.
-</div>
-
-<div class="blue-card text-sm">
-<strong>Engineering punchline:</strong> You can have a huge world model AND real-time control — the two are no longer in tension.
-</div>
-
-</div>
-</div>
-
----
-
-# The Numbers
-
-<div class="flex justify-center items-start mt-2" style="padding-top:0.5rem;">
-<img src="/figures/dreamzero-benchmarks.png" class="rounded-lg" style="max-height:72vh; max-width:92%;" />
-</div>
-
----
-
-# Cross-Embodiment Transfer
-
-<div class="grid grid-cols-2 gap-6 mt-4">
-<div>
-
-<div class="card text-sm mb-3">
-Every VLA paper shows <strong>one robot</strong>, <strong>one lab</strong>, <strong>one set of tasks</strong>. Generalization to a new embodiment usually means "re-collect hundreds of hours of data on the new arm."
-</div>
-
-<div class="blue-card text-sm mb-3">
-<strong>DreamZero's result:</strong> Transfer from AgiBot G1 → YAM bimanual with just <strong>20 minutes of video-only play data</strong> (no demonstrations, no action labels, raw video).
-</div>
-
-<div class="accent-card text-sm mb-3">
-Task progress: <strong>38.3% → 55.4%</strong>. A +17 point improvement from 20 minutes of unpaired video.
-</div>
-
-<div class="teal-card text-sm">
-<strong>Even wilder:</strong> 12 minutes of <em>human hand</em> video (no robot at all) gets you to <strong>54.3%</strong> — almost the same.
-</div>
-
-</div>
-<div>
-
-### Why this works
-
-<div class="card text-sm mb-3">
-The world head has learned general visual physics from Wan2.1 pre-training + AgiBot G1 fine-tuning. It doesn't need action labels to understand "how objects move."
-</div>
-
-<div class="blue-card text-sm mb-3">
-When you show it 20 minutes of a new arm (or a hand) manipulating objects, the video loss updates the world head to "understand this new body." The action head then <em>infers</em> what actions would produce that motion.
-</div>
-
-<div class="accent-card text-sm">
-<strong>This is the end of per-robot data collection.</strong> Pre-train once → adapt to any embodiment with minutes of unpaired video.
-</div>
-
-</div>
-</div>
-
----
-
-# DreamZero vs. Everything
-
-<div class="mt-2">
-
-| | **DINO-WM** | **IRIS** | **DIAMOND** | **LeWorld** | **V-JEPA 2** | **DreamZero** |
-|---|---|---|---|---|---|---|
-| **Generates pixels** | No | Yes | Yes | No | No | **Yes** (joint) |
-| **Actions for WM** | Yes | Yes | Yes | Yes | No | **No** |
-| **Internet video** | No | No | No | No | Yes | **Yes** |
-| **Learned policy** | No (CEM) | Yes | Yes | No (MPC) | No (CEM) | **Yes** |
-| **Scale** | ~300M | ~100M | ~200M | ~15M | ~1B | **14B** |
-| **Generalization** | Limited | Moderate | Moderate | Good | Good | **Best** |
-
-<div class="accent-card mt-3 text-sm text-center">
-<strong>The trajectory:</strong> From action-conditioned + planning (DINO-WM, LeWorld) → non-generative JEPA (V-JEPA 2) → joint prediction leveraging internet-scale data (DreamZero). Each step addresses the previous one's limitations.
-</div>
 
 </div>
 
@@ -2534,9 +2188,7 @@ When you show it 20 minutes of a new arm (or a hand) manipulating objects, the v
 
 ### From Theory to Production
 - **LeWorld**: tiny 15M end-to-end JEPA, SIGReg, 48× faster than DINO-WM
-- **DreamZero**: 14B joint world-action model, flow matching, 7 Hz real-time
-- **Cross-embodiment**: 20 min of video → new robot, no action labels
-- **The GPT playbook**: pre-train on internet video, fine-tune on robot data
+- **Capstone projects**: build with LeWorld + SO-101
 
 </div>
 </div>
@@ -2545,7 +2197,7 @@ When you show it 20 minutes of a new arm (or a hand) manipulating objects, the v
 
 ### The Big Takeaway
 
-The field is converging on a clear recipe: **(1)** learn world representations from massive video (JEPA / generative), **(2)** add action conditioning with minimal robot data, **(3)** plan or act directly in learned latent space. V-JEPA 2 proves non-generative JEPA works. DreamZero proves joint generative models scale. Both point to the same future: **robots that learn physics from watching the world**.
+The field is converging on a clear recipe: **(1)** learn world representations from massive video (JEPA / generative), **(2)** add action conditioning with minimal robot data, **(3)** plan or act directly in learned latent space. V-JEPA 2 proves non-generative JEPA works. LeWorld proves it can scale to real robots efficiently. Both point to the same future: **robots that learn physics from watching the world**.
 
 </div>
 
