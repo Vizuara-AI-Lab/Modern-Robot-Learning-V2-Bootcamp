@@ -2551,11 +2551,11 @@ The field is converging on a clear recipe: **(1)** learn world representations f
 
 ---
 
-# 🔧 Capstone Project: Build with LeWorld + SO-101
+# Capstone Project: Build with LeWorld + SO-101
 
 <div class="accent-card mt-4 text-sm">
 
-**Why LeWorld?** At 15M parameters, it trains in **4–8 GPU-hours** on a single A100/H100, runs inference at **>30 FPS on an M4 Pro**, and needs only **50 demonstrations**. It's the most student-accessible world model that actually works.
+**Why LeWorld?** At 15M parameters, it trains in **4–8 GPU-hours** on a single A100, runs inference at **>30 FPS on an M4 Pro**, and needs only **50 demonstrations**. It's the most student-accessible world model that actually works.
 
 </div>
 
@@ -2566,7 +2566,7 @@ The field is converging on a clear recipe: **(1)** learn world representations f
 ### Option A
 **"Teach Your Robot to Imagine"**
 
-Train LeWorld end-to-end on SO-101 pick-and-place demos. Deploy CEM planning on your laptop. Make the robot pick a cube using *imagination alone* — no policy network.
+Train LeWorld end-to-end on SO-101 pick-and-place demos. Deploy CEM planning on your laptop. The robot picks a cube using *imagination alone* — no policy network.
 
 </div>
 
@@ -2575,7 +2575,7 @@ Train LeWorld end-to-end on SO-101 pick-and-place demos. Deploy CEM planning on 
 ### Option B
 **"The Surprise Detector"**
 
-Train LeWorld, then use **prediction error** as a real-time anomaly signal. When someone moves the cube mid-task, the world model's surprise spike triggers re-planning.
+Use LeWorld's **prediction error** as a real-time anomaly signal. Detect task failures, human interventions, and auto-label successful episodes — no human supervisor needed.
 
 </div>
 
@@ -2584,7 +2584,7 @@ Train LeWorld, then use **prediction error** as a real-time anomaly signal. When
 ### Option C
 **"One Model, Four Tasks"**
 
-Train a single LeWorld on all four SO-101 tasks (pick, pour, sort, push). Switch tasks at inference by changing the **goal image** — no retraining. How far does zero-shot transfer go?
+Train a single LeWorld on all four SO-101 tasks. Switch tasks at inference by changing the **goal image** — no retraining. Test zero-shot transfer to a 5th unseen task.
 
 </div>
 
@@ -2592,31 +2592,519 @@ Train a single LeWorld on all four SO-101 tasks (pick, pour, sort, push). Switch
 
 ---
 
-# Project Option A: "Teach Your Robot to Imagine"
+# Step 1: Setup — Install LeWorld
 
 <div class="grid grid-cols-2 gap-6 mt-4">
 <div>
 
-### What You'll Build
+### Repositories
 
 <div class="card text-sm mb-3">
-An end-to-end pipeline: <strong>collect 50 demos → train LeWorld → CEM planning → closed-loop control</strong> on a real SO-101 arm. No policy network anywhere — the robot acts purely by imagining futures and picking the best one.
+
+```bash
+# Clone LeWorld
+git clone https://github.com/lucas-maes/le-wm.git
+cd le-wm
+
+# Create environment (Python 3.10)
+uv venv --python=3.10
+source .venv/bin/activate
+
+# Install stable-worldmodel (training + envs)
+uv pip install stable-worldmodel[train,env]
+```
+
 </div>
 
 <div class="teal-card text-sm mb-3">
-<strong>Week 1:</strong> Replicate LeWorld on Push-T (2D sim). Understand SIGReg, ViT-Tiny encoder, action-conditioned predictor. Verify: prediction loss ↓, CEM planning succeeds.
+<strong>Three repos work together:</strong><br>
+• <code>lucas-maes/le-wm</code> — configs + train/eval scripts<br>
+• <code>galilai-group/stable-worldmodel</code> — data, CEM solver, eval<br>
+• <code>rbalestr-lab/stable-pretraining</code> — ViT backbone, transforms
 </div>
 
-<div class="blue-card text-sm mb-3">
-<strong>Week 2:</strong> Record 50 pick-and-place episodes on SO-101 (or use existing <code>lerobot/svla_so101_pickplace</code>). Train LeWorld. Monitor latent space collapse via SIGReg metrics.
+<div class="blue-card text-sm">
+<strong>Paper:</strong> arXiv:2603.19312<br>
+<strong>Project page:</strong> <code>le-wm.github.io</code>
+</div>
+
+</div>
+<div>
+
+### Verify: Replicate Push-T
+
+<div class="card text-sm mb-3">
+
+```bash
+# Download Push-T dataset (~200MB)
+# Extracts to $STABLEWM_HOME/pusht_expert_train.h5
+tar --zstd -xvf pusht_expert_train.tar.zst
+
+# Train LeWorld on Push-T (baseline)
+python train.py data=pusht
+
+# Evaluate with CEM planning
+python eval.py --config-name=pusht \
+    policy=pusht/lewm
+```
+
 </div>
 
 <div class="accent-card text-sm mb-3">
-<strong>Week 3:</strong> Implement CEM planner — sample 500 action sequences, roll forward through LeWorld, rank by L2 distance to goal latent. Deploy on M4 Pro at 30 Hz.
+<strong>Expected result:</strong> Training converges in ~100 epochs. CEM evaluation runs 50 episodes. You should see the Push-T success rate from the paper.
 </div>
 
 <div class="purple-card text-sm">
-<strong>Week 4:</strong> Ablation study → plot success rate vs. (1) number of demos, (2) SIGReg λ, (3) CEM population size. Compare planning time to DINO-WM.
+<strong>Checkpoint:</strong> Saved to <code>$STABLEWM_HOME/&lt;job_id&gt;/lewm_epoch_N_object.ckpt</code>
+</div>
+
+</div>
+</div>
+
+---
+
+# Step 2: Data Pipeline — LeRobot → LeWorld HDF5
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+<div>
+
+### LeWorld's data format
+
+<div class="card text-sm mb-3">
+LeWorld expects a <strong>single HDF5 file</strong> with flat arrays. All episodes are concatenated. Two metadata arrays index into them:
+</div>
+
+<div class="teal-card text-sm mb-3">
+
+| HDF5 key | Shape | Type |
+|----------|-------|------|
+| `ep_len` | `(num_eps,)` | int |
+| `ep_offset` | `(num_eps,)` | int |
+| `pixels` | `(total_steps, H, W, 3)` | uint8 |
+| `action` | `(total_steps, 7)` | float32 |
+| `state` | `(total_steps, 7)` | float32 |
+| `step_idx` | `(total_steps,)` | int |
+| `episode_idx` | `(total_steps,)` | int |
+
+</div>
+
+<div class="blue-card text-sm">
+<strong>SO-101 action dim = 7</strong> (6 joint velocities + 1 gripper). Images resized to 224×224 for ViT-Tiny.
+</div>
+
+</div>
+<div>
+
+### Conversion script
+
+<div class="card text-sm mb-3">
+
+```python
+# convert_lerobot_to_h5.py
+import h5py, numpy as np
+from lerobot.common.datasets import LeRobotDataset
+
+ds = LeRobotDataset("lerobot/svla_so101_pickplace")
+
+with h5py.File("so101_pickplace_train.h5", "w") as f:
+    all_px, all_act, all_st = [], [], []
+    ep_lens = []
+
+    for ep_idx in range(ds.num_episodes):
+        ep = ds.get_episode(ep_idx)
+        imgs = ep["observation.images.front"]  # (T,C,H,W)
+        # HWC uint8 for LeWorld
+        imgs = (imgs.permute(0,2,3,1) * 255).byte()
+        acts = ep["action"]            # (T, 7)
+        state = ep["observation.state"] # (T, 7)
+
+        all_px.append(imgs.numpy())
+        all_act.append(acts.numpy())
+        all_st.append(state.numpy())
+        ep_lens.append(len(imgs))
+
+    f["pixels"] = np.concatenate(all_px)
+    f["action"] = np.concatenate(all_act)
+    f["state"] = np.concatenate(all_st)
+    f["ep_len"] = np.array(ep_lens)
+    f["ep_offset"] = np.cumsum([0]+ep_lens[:-1])
+    f["step_idx"] = np.concatenate(
+        [np.arange(l) for l in ep_lens])
+    f["episode_idx"] = np.concatenate(
+        [np.full(l, i) for i, l in enumerate(ep_lens)])
+```
+
+</div>
+
+<div class="accent-card text-sm">
+Place output at <code>$STABLEWM_HOME/so101_pickplace_train.h5</code>
+</div>
+
+</div>
+</div>
+
+---
+
+# Step 3: Training Config for SO-101
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+<div>
+
+### Create data config
+
+<div class="card text-sm mb-3">
+
+```yaml
+# config/train/data/so101.yaml
+dataset:
+  num_steps: ${eval:'${wm.num_preds} + ${wm.history_size}'}
+  frameskip: 5          # 30Hz → 6Hz control
+  name: so101_pickplace_train
+  keys_to_load:
+    - pixels
+    - action
+    - state
+  keys_to_cache:
+    - action
+    - state
+```
+
+</div>
+
+<div class="teal-card text-sm mb-3">
+<strong>Why frameskip=5?</strong> SO-101 records at 30 Hz. CEM planning at 6 Hz (every 5th frame) is enough for pick-place. Actions in each group are concatenated: <code>action_dim = 7 × 5 = 35</code> per planning step.
+</div>
+
+<div class="blue-card text-sm">
+<strong>Auto-detection:</strong> <code>action_dim</code> is read from the HDF5 file automatically — you don't set it manually.
+</div>
+
+</div>
+<div>
+
+### Training command
+
+<div class="card text-sm mb-3">
+
+```bash
+# Train LeWorld on SO-101
+python train.py data=so101 \
+    trainer.max_epochs=100 \
+    optimizer.lr=5e-5 \
+    loss.sigreg.weight=0.09 \
+    loader.batch_size=128 \
+    trainer.precision=bf16
+
+# Override for smaller datasets (50 eps)
+python train.py data=so101 \
+    trainer.max_epochs=200 \
+    loader.batch_size=64
+```
+
+</div>
+
+<div class="accent-card text-sm mb-3">
+
+### Key hyperparameters
+
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `encoder_scale` | `tiny` | ViT-Tiny, 5M params |
+| `wm.history_size` | `3` | 3 past frames as context |
+| `wm.num_preds` | `1` | Predict 1 step ahead |
+| `wm.embed_dim` | `192` | Latent dimension |
+| `predictor.depth` | `6` | 6 transformer layers |
+| `loss.sigreg.weight` | `0.09` | The ONE hyperparameter |
+
+</div>
+
+<div class="purple-card text-sm">
+<strong>Monitor for collapse:</strong> If <code>sigreg_loss</code> drops to 0 while <code>pred_loss</code> stalls, the encoder collapsed. Increase <code>sigreg.weight</code>.
+</div>
+
+</div>
+</div>
+
+---
+
+# Step 4: Understanding the Training Loop
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+<div>
+
+### What happens each step
+
+<div class="card text-sm mb-3">
+
+```
+Input batch:
+  pixels: (128, 4, 3, 224, 224)   # B, T, C, H, W
+  action: (128, 4, 35)             # B, T, act_dim*skip
+
+Step 1: Encode all frames
+  ViT-Tiny(pixels) → CLS tokens
+  → Projector MLP → emb: (128, 4, 192)
+
+Step 2: Encode all actions
+  Conv1D + SiLU MLP → act_emb: (128, 4, 192)
+
+Step 3: Split context / target
+  ctx_emb  = emb[:, :3]    # history
+  ctx_act  = act_emb[:, :3]
+  tgt_emb  = emb[:, 1:]    # shifted target
+
+Step 4: Predict
+  ARPredictor(ctx_emb, ctx_act) → pred: (128,3,192)
+
+Step 5: Loss
+  pred_loss  = MSE(pred, tgt_emb)
+  sigreg     = SIGReg(emb)      # collapse prevention
+  total_loss = pred_loss + 0.09 * sigreg
+```
+
+</div>
+
+</div>
+<div>
+
+### The architecture in one picture
+
+<div class="teal-card text-sm mb-3">
+
+```
+pixels ──→ [ViT-Tiny] ──→ [Projector] ──→ emb
+              5M params       MLP           (B,T,192)
+                                              │
+actions ──→ [Embedder] ──────────────→ act_emb│
+              Conv1D+MLP                (B,T,192)
+                                              │
+              ┌───────────────────────────────┘
+              ▼
+         [AR Predictor]  ←── 6-layer Transformer
+           10M params        16 heads, AdaLN
+              │
+              ▼
+         [Pred Projector] ──→ pred_emb (B,T,192)
+              MLP
+              │
+              ▼
+         MSE(pred_emb, tgt_emb) + λ·SIGReg(emb)
+```
+
+</div>
+
+<div class="accent-card text-sm mb-3">
+<strong>Total: ~15M parameters.</strong> The encoder (5M) and predictor (10M) are trained jointly end-to-end. No frozen foundation model. No EMA. No stop-gradient.
+</div>
+
+<div class="blue-card text-sm">
+<strong>SIGReg in one line:</strong> Project embeddings onto 1,024 random directions. Penalize deviation from $\mathcal{N}(0,1)$. That's it — collapsed embeddings can't be Gaussian.
+</div>
+
+</div>
+</div>
+
+---
+
+# Step 5: CEM Planning — How the Robot "Imagines"
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+<div>
+
+### The algorithm
+
+<div class="card text-sm mb-3">
+
+```
+Input: current_obs (3 frames), goal_image
+Output: action sequence (5 steps)
+
+1. z_current = Encoder(current_obs)   # (1, 3, 192)
+   z_goal    = Encoder(goal_image)    # (1, 1, 192)
+
+2. Initialize: μ = zeros(5, 35)
+               σ = ones(5, 35)
+
+3. For i = 1 to 30:        # CEM iterations
+     # Sample 300 action candidates
+     A ~ N(μ, σ²)          # shape: (300, 5, 35)
+
+     # Rollout each candidate through world model
+     For each candidate a₁...a₅:
+       z₁ = Predictor(z_current, a₁)
+       z₂ = Predictor([z₁], a₂)
+       ...
+       z₅ = Predictor([z₄], a₅)
+
+     # Score: how close is z₅ to z_goal?
+     cost = MSE(z₅, z_goal)    # (300,)
+
+     # Keep top 30, update distribution
+     elite = top_30_lowest_cost(A)
+     μ = mean(elite)
+     σ = std(elite)
+
+4. Return μ  # best action sequence
+```
+
+</div>
+
+</div>
+<div>
+
+### Config
+
+<div class="teal-card text-sm mb-3">
+
+```yaml
+# config/eval/solver/cem.yaml
+num_samples: 300     # candidates per iteration
+n_steps: 30          # CEM iterations
+topk: 30             # elite samples
+```
+
+```yaml
+# config/eval/so101.yaml  (you create this)
+plan_config:
+  horizon: 5          # plan 5 steps ahead
+  receding_horizon: 5 # execute all 5
+  action_block: 5     # must match frameskip
+
+eval:
+  num_eval: 20
+  goal_offset_steps: 25  # goal = 25 steps ahead
+  eval_budget: 50         # max planning cycles
+```
+
+</div>
+
+<div class="blue-card text-sm mb-3">
+<strong>Speed:</strong> 300 candidates × 5 rollout steps × 30 iterations = 45,000 forward passes through the predictor. On M4 Pro: <strong>&lt;1 second total</strong> (predictor is 10M params, 192-dim). On DINO-WM: ~47 seconds (200 tokens per frame, 86M encoder).
+</div>
+
+<div class="accent-card text-sm">
+<strong>Receding horizon:</strong> Execute 5 actions (at 6 Hz = 0.83 sec of motion), get a new camera frame, re-plan. The robot is constantly re-imagining its future.
+</div>
+
+</div>
+</div>
+
+---
+
+# Step 6: Deploy on Real SO-101
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+<div>
+
+### Real-time control loop
+
+<div class="card text-sm mb-3">
+
+```python
+# deploy_leworld_so101.py
+import torch, cv2, numpy as np
+from lerobot.common.robots import SO101Robot
+
+# Load trained model
+model = load_lewm_checkpoint("so101/lewm")
+model.eval().to("mps")  # or "cuda"
+
+# Connect to SO-101
+robot = SO101Robot(cameras=["front"])
+robot.connect()
+
+# Capture goal image (show desired end state)
+goal_img = capture_and_preprocess(robot, size=224)
+z_goal = model.encode_single(goal_img)
+
+# Control loop
+history = deque(maxlen=3)  # last 3 frames
+for step in range(200):
+    frame = robot.get_observation()["images"]["front"]
+    frame = preprocess(frame, size=224)
+    history.append(frame)
+
+    if len(history) < 3:
+        continue
+
+    # CEM planning
+    z_ctx = model.encode(stack(history))
+    actions = cem_solve(model, z_ctx, z_goal,
+                        n_samples=300, n_iters=30,
+                        horizon=5, topk=30)
+
+    # Execute first action chunk (5 raw actions)
+    for a in actions[0].reshape(5, 7):
+        robot.send_action(a)  # 30 Hz
+        time.sleep(1/30)
+```
+
+</div>
+
+</div>
+<div>
+
+### Key implementation details
+
+<div class="teal-card text-sm mb-3">
+<strong>Action denormalization:</strong> LeWorld trains with z-scored actions. You must save the normalizer's <code>mean</code> and <code>std</code> from training and apply the inverse transform before sending to the robot.
+</div>
+
+<div class="blue-card text-sm mb-3">
+<strong>Image preprocessing:</strong> Must match training exactly — resize to 224×224, permute to CHW, ImageNet normalize:
+<br><code>mean=[0.485, 0.456, 0.406]</code>
+<br><code>std=[0.229, 0.224, 0.225]</code>
+</div>
+
+<div class="accent-card text-sm mb-3">
+<strong>Goal image:</strong> Before starting, manually place objects in the desired final configuration. Snap a photo. Encode it once. This is the target for all CEM planning.
+</div>
+
+<div class="purple-card text-sm">
+<strong>Frameskip alignment:</strong> Training used <code>frameskip=5</code>, so each planned action is 5 raw actions concatenated (dim=35). Reshape to <code>(5, 7)</code> and send each at 30 Hz. One planning step = 5/30 = 0.167 seconds of motion.
+</div>
+
+</div>
+</div>
+
+---
+
+# Option A: "Teach Your Robot to Imagine"
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+<div>
+
+### Week-by-week plan
+
+<div class="teal-card text-sm mb-3">
+<strong>Week 1 — Replicate Push-T:</strong><br>
+• Install le-wm, download Push-T dataset<br>
+• Run <code>python train.py data=pusht</code><br>
+• Run <code>python eval.py --config-name=pusht policy=pusht/lewm</code><br>
+• <strong>Checkpoint:</strong> loss converging, CEM planning works in sim
+</div>
+
+<div class="blue-card text-sm mb-3">
+<strong>Week 2 — SO-101 data + training:</strong><br>
+• Convert dataset: <code>python convert_lerobot_to_h5.py</code><br>
+• Create <code>config/train/data/so101.yaml</code><br>
+• Train: <code>python train.py data=so101 trainer.max_epochs=200</code><br>
+• <strong>Checkpoint:</strong> pred_loss ↓, sigreg_loss stable (not zero!)
+</div>
+
+<div class="accent-card text-sm mb-3">
+<strong>Week 3 — Deploy on real robot:</strong><br>
+• Write <code>deploy_leworld_so101.py</code> (previous slide)<br>
+• Test CEM planning with goal images<br>
+• <strong>Checkpoint:</strong> robot picks cube at least 3/10 trials
+</div>
+
+<div class="purple-card text-sm">
+<strong>Week 4 — Ablations + report:</strong><br>
+• Sweep SIGReg λ: [0.01, 0.05, 0.09, 0.2, 0.5]<br>
+• Sweep demo count: [10, 25, 50] episodes<br>
+• Sweep CEM: num_samples [100, 300, 500], n_steps [10, 30]<br>
+• <strong>Checkpoint:</strong> ablation plots + comparison table
 </div>
 
 </div>
@@ -2625,27 +3113,34 @@ An end-to-end pipeline: <strong>collect 50 demos → train LeWorld → CEM plann
 ### Deliverables
 
 <div class="card text-sm mb-3">
-<strong>1. Trained LeWorld checkpoint</strong><br>
-~15M params, &lt;200 MB, trained on 50 demos in 4–8 GPU-hours
+<strong>1. Trained checkpoint</strong> (~200 MB)<br>
+15M params, trained on 50 demos in 4–8 GPU-hours on 1×A100
 </div>
 
 <div class="card text-sm mb-3">
-<strong>2. Real robot demo video</strong><br>
-SO-101 picking a cube using CEM planning — no policy network
+<strong>2. Demo video</strong><br>
+SO-101 picking a cube using CEM planning — camera feed + latent distance plot overlay showing the planner converging
 </div>
 
 <div class="card text-sm mb-3">
-<strong>3. Speed benchmark</strong><br>
-Planning latency per step: LeWorld (&lt;1s) vs DINO-WM (~47s) — the 48× speedup claim, verified on your own hardware
+<strong>3. Speed benchmark table</strong>
+
+| | LeWorld | DINO-WM |
+|--|---------|---------|
+| Encoder | 5M (trained) | 86M (frozen) |
+| Latents/frame | 1 | ~200 |
+| Plan time/step | <1s | ~47s |
+| Hardware | M4 Pro | H100 |
+
 </div>
 
 <div class="card text-sm mb-3">
-<strong>4. Ablation report</strong><br>
-SIGReg λ sweep, demo count curve, CEM hyperparameter sensitivity
+<strong>4. Ablation plots</strong><br>
+Success rate vs. λ, demo count, CEM population — 3 clean figures
 </div>
 
 <div class="accent-card text-sm">
-<strong>Stretch goal:</strong> Add a webcam-based goal specification — show the robot a photo of the desired end state, it plans in latent space to get there.
+<strong>Stretch goal:</strong> Webcam goal specification — hold up a photo of the desired end state, encode it live, plan toward it.
 </div>
 
 </div>
@@ -2653,54 +3148,76 @@ SIGReg λ sweep, demo count curve, CEM hyperparameter sensitivity
 
 ---
 
-# Project Option B: "The Surprise Detector"
+# Option B: "The Surprise Detector"
 
 <div class="grid grid-cols-2 gap-6 mt-4">
 <div>
 
-### The Idea
+### Core idea
 
 <div class="card text-sm mb-3">
-A trained world model predicts what <strong>should</strong> happen next. When reality diverges from prediction, that's a <strong>surprise</strong>. Surprise = something unexpected = time to react.
+A world model predicts what <strong>should</strong> happen. When reality diverges, that's <strong>surprise</strong>. This is a free signal for failure detection, safety monitoring, and autonomous data labeling.
 </div>
-
-<div class="teal-card text-sm mb-3">
-<strong>Application 1 — Failure detection:</strong> Run LeWorld alongside a policy (e.g., ACT or Diffusion Policy). When prediction error spikes above a threshold → the task probably failed → trigger a retry or alert.
-</div>
-
-<div class="blue-card text-sm mb-3">
-<strong>Application 2 — Human intervention detection:</strong> Someone grabs the cube mid-task. LeWorld didn't predict that. Surprise spike → pause and re-plan from the new state.
-</div>
-
-<div class="accent-card text-sm">
-<strong>Application 3 — Autonomous data collection:</strong> The robot tries a task. If surprise stays low throughout → likely a success → add to dataset. If surprise spikes → likely a failure → discard. <strong>Free quality labels without human supervision.</strong>
-</div>
-
-</div>
-<div>
 
 ### Implementation
 
-<div class="card text-sm mb-3">
-<strong>Step 1:</strong> Train LeWorld on 50 successful pick-place demos (same as Option A).
+<div class="teal-card text-sm mb-3">
+<strong>Step 1:</strong> Train LeWorld on 50 successful demos (same as Option A).
 </div>
 
-<div class="card text-sm mb-3">
-<strong>Step 2:</strong> Define surprise score:
+<div class="blue-card text-sm mb-3">
+<strong>Step 2:</strong> Define the surprise score:
+
 $$S(t) = \| \text{Enc}(x_{t+1}) - \text{Pred}(s_t, a_t) \|_2$$
-The L2 distance between what was predicted and what actually happened.
+
+```python
+# In the control loop:
+z_pred = model.predict(z_history, a_emb)  # (1,192)
+z_real = model.encode(next_frame)          # (1,192)
+surprise = torch.norm(z_pred - z_real).item()
+```
+
+</div>
+
+<div class="accent-card text-sm mb-3">
+<strong>Step 3:</strong> Collect calibration data:
+<br>• 20 episodes where the task succeeds
+<br>• 20 episodes where it fails (drop cube, miss target, human intervenes)
+<br>• Plot $S(t)$ curves for both groups
+<br>• Find threshold $\tau$ using ROC analysis
+</div>
+
+<div class="purple-card text-sm">
+<strong>Step 4:</strong> Deploy as real-time monitor at 30 Hz alongside any policy (ACT, Diffusion, or even teleoperation).
+</div>
+
+</div>
+<div>
+
+### Three applications
+
+<div class="card text-sm mb-3">
+<strong>App 1 — Failure detection:</strong><br>
+When $S(t) > \tau$ → task probably failed → trigger retry. Run alongside Diffusion Policy or ACT — LeWorld monitors, the policy acts.
 </div>
 
 <div class="card text-sm mb-3">
-<strong>Step 3:</strong> Collect 20 successful and 20 failed episodes. Plot $S(t)$ over time for each. Find the threshold $\tau$ that separates them.
+<strong>App 2 — Human intervention:</strong><br>
+Someone grabs the cube mid-task. LeWorld predicts the cube should still be there — massive surprise spike. Pause execution, re-capture goal, re-plan.
 </div>
 
-<div class="card text-sm mb-3">
-<strong>Step 4:</strong> Deploy as a real-time monitor: run LeWorld at 30 Hz alongside any policy. Flash a warning when $S(t) > \tau$.
+<div class="accent-card text-sm mb-3">
+<strong>App 3 — Auto-labeling for dataset growth:</strong><br>
+Robot attempts task autonomously. If max$(S(t)) < \tau$ throughout → auto-label as "success" → add to dataset. If surprise spikes → discard. <strong>Grow your dataset without human supervision.</strong>
 </div>
 
-<div class="accent-card text-sm">
-<strong>Deliverable:</strong> ROC curve of success/failure classification using surprise score alone. Compare to a naive image-difference baseline. Report AUC.
+### Deliverables
+
+<div class="teal-card text-sm">
+<strong>1.</strong> ROC curve: surprise-based success/failure classification<br>
+<strong>2.</strong> AUC comparison: surprise score vs. naive pixel-difference baseline<br>
+<strong>3.</strong> Real-time surprise dashboard (plot $S(t)$ live during execution)<br>
+<strong>4.</strong> Auto-labeled dataset: N episodes labeled by surprise alone
 </div>
 
 </div>
@@ -2708,61 +3225,68 @@ The L2 distance between what was predicted and what actually happened.
 
 ---
 
-# Project Option C: "One Model, Four Tasks"
+# Option C: "One Model, Four Tasks"
 
 <div class="grid grid-cols-2 gap-6 mt-4">
 <div>
 
-### Multi-Task World Model
+### Setup
 
 <div class="card text-sm mb-3">
-LeWorld learns <strong>physics</strong>, not tasks. A single world model should be able to plan for any task — you just change the <strong>goal</strong>.
+<strong>Hypothesis:</strong> LeWorld learns <strong>physics</strong>, not tasks. One model should plan for any goal image — no task ID needed.
 </div>
 
 <div class="teal-card text-sm mb-3">
-<strong>Training:</strong> Pool all four SO-101 datasets:
-<br>• 50 eps pick-and-place
-<br>• 50 eps pour beads
-<br>• 50 eps sort by color
-<br>• 50 eps push plate
-<br><strong>200 demos total</strong> → still just 4–8 GPU-hours
+<strong>Data:</strong> Pool all four SO-101 datasets into one HDF5:
+
+```python
+# Same conversion script, but loop over:
+datasets = [
+    "lerobot/svla_so101_pickplace",   # 50 eps
+    "your_org/so101_pour_beads",       # 50 eps
+    "your_org/so101_sort_by_color",    # 50 eps
+    "your_org/so101_push_plate",       # 50 eps
+]
+# → so101_multitask_train.h5 (200 eps)
+```
+
 </div>
 
 <div class="blue-card text-sm mb-3">
-<strong>Inference:</strong> At test time, provide a <strong>goal image</strong> of the desired outcome. CEM plans action sequences that minimize latent distance to the goal. No task ID, no language — just "make reality look like this."
+<strong>Training:</strong> Identical config. Same 4–8 GPU-hours — 200 eps is still small data. The model sees a variety of object interactions during training.
 </div>
 
 <div class="accent-card text-sm">
-<strong>The test:</strong> Can a model trained on 4 tasks generalize to a 5th? Try a completely new task (e.g., "push cup to left") — same objects, never-seen arrangement. Does CEM find a plan?
+<strong>Inference:</strong> Provide a goal image of the desired outcome. CEM minimizes <code>MSE(z_predicted, z_goal)</code>. No task ID, no language conditioning — just "make reality look like this photo."
 </div>
 
 </div>
 <div>
 
-### Experiments to Run
+### Experiments
 
 <div class="card text-sm mb-3">
-<strong>1. Task confusion matrix:</strong><br>
-4×4 grid — train on all, test on each. Does multi-task help or hurt individual performance?
+<strong>1. Task confusion matrix (4×4):</strong><br>
+Train on all 4, evaluate on each separately. Does multi-task help or hurt per-task performance vs. single-task models?
 </div>
 
 <div class="card text-sm mb-3">
 <strong>2. Data scaling curve:</strong><br>
-Train on 25, 50, 100, 200 demos. Plot success rate per task. When does more data stop helping?
+Train on [50, 100, 150, 200] total demos. Plot success rate per task. When does more data stop helping?
 </div>
 
 <div class="card text-sm mb-3">
-<strong>3. Latent space visualization:</strong><br>
-t-SNE of LeWorld latents colored by task. Do tasks cluster? Do shared physics concepts overlap?
+<strong>3. Latent space t-SNE:</strong><br>
+Encode 500 frames from each task. t-SNE colored by task. Do tasks form separate clusters? Do "grasping" frames from different tasks overlap?
 </div>
 
 <div class="card text-sm mb-3">
-<strong>4. Zero-shot transfer:</strong><br>
-Hold out one task entirely. Train on 3, test on the 4th. Report success rate.
+<strong>4. Leave-one-task-out transfer:</strong><br>
+Train on 3 tasks, test on the 4th. Repeat for all 4. Report zero-shot success rate. This directly tests: <em>did the model learn transferable physics?</em>
 </div>
 
 <div class="accent-card text-sm">
-<strong>Deliverable:</strong> A single 15M-param model that plans 4 manipulation tasks from goal images alone. Plus a transfer learning analysis showing how much physics actually generalizes.
+<strong>5. Novel task (bonus):</strong> Place objects in a configuration the model never saw (e.g., "push cup to left zone"). Give a goal photo. Does CEM find a plan?
 </div>
 
 </div>
@@ -2770,7 +3294,7 @@ Hold out one task entirely. Train on 3, test on the 4th. Report success rate.
 
 ---
 
-# Getting Started — Resources & Compute
+# Resources, Compute & Tips
 
 <div class="grid grid-cols-2 gap-6 mt-4">
 <div>
@@ -2778,44 +3302,49 @@ Hold out one task entirely. Train on 3, test on the 4th. Report success rate.
 ### Code & Data
 
 <div class="card text-sm mb-3">
-<strong>LeWorld repo:</strong> <code>github.com/panagiotispa/leworld</code><br>
-PyTorch, clean implementation, includes Push-T baseline
+<strong>LeWorld:</strong> <code>github.com/lucas-maes/le-wm</code><br>
+<strong>Framework:</strong> <code>galilai-group/stable-worldmodel</code><br>
+<strong>Paper:</strong> arXiv:2603.19312
 </div>
 
 <div class="teal-card text-sm mb-3">
-<strong>SO-101 datasets (LeRobot format):</strong><br>
+<strong>SO-101 datasets (HuggingFace):</strong><br>
 • <code>lerobot/svla_so101_pickplace</code> (50 eps)<br>
-• <code>whosricky/so101-megamix-v1</code> (400 eps, 8 tasks)<br>
+• <code>whosricky/so101-megamix-v1</code> (400 eps)<br>
 • <code>youliangtan/so101-table-cleanup</code> (80 eps)<br>
-Or record your own with <code>lerobot record</code>
+Or record your own: <code>python -m lerobot.record</code>
 </div>
 
-<div class="blue-card text-sm mb-3">
+<div class="blue-card text-sm">
 <strong>LeRobot v0.4+:</strong> <code>pip install lerobot</code><br>
-Handles data loading, camera capture, robot control, replay — everything you need for the pipeline.
+Data loading, camera capture, robot control, replay — the full pipeline for SO-101.
 </div>
 
 </div>
 <div>
 
-### Compute Requirements
+### Compute & common pitfalls
 
 <div class="card text-sm mb-3">
 
-| Phase | Hardware | Time |
-|-------|----------|------|
-| **Training** | 1× A100/H100 (or A6000) | 4–8 hours |
-| **Inference** | M4 Pro / RTX 4060 / any GPU | >30 FPS |
-| **CEM Planning** | CPU or GPU | <1 sec/step |
+| Phase | Hardware | Time | Cost |
+|-------|----------|------|------|
+| **Training** | 1× A100 | 4–8h | ~$8 |
+| **Inference** | M4 Pro / RTX 4060 | >30 FPS | free |
+| **CEM plan** | any GPU or CPU | <1s/step | free |
 
 </div>
 
 <div class="accent-card text-sm mb-3">
-<strong>Total GPU cost:</strong> ~$5–10 on RunPod or Lambda (1× A100 for 8 hours). This is a real world model for the price of a coffee.
+<strong>Common mistakes:</strong><br>
+• Forgetting action denormalization → robot goes wild<br>
+• Image normalize mismatch (training vs deploy) → garbage latents<br>
+• <code>frameskip</code> ≠ <code>action_block</code> → CEM plans wrong horizon<br>
+• SIGReg weight too low → encoder collapses silently
 </div>
 
 <div class="purple-card text-sm">
-<strong>Tip:</strong> Start with Push-T in simulation (zero hardware needed) to validate your training loop. Only move to SO-101 once you see the loss curve converging.
+<strong>Start order:</strong> Push-T in sim (free, fast) → verify training loop → then SO-101 data conversion → then real robot. Don't skip the sim step.
 </div>
 
 </div>
