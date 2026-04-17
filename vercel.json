@@ -6,6 +6,7 @@
     { "source": "/lecture-2/(.*)", "destination": "/lecture-2/index.html" },
     { "source": "/lecture-3/(.*)", "destination": "/lecture-3/index.html" },
     { "source": "/lecture-4/(.*)", "destination": "/lecture-4/index.html" },
-    { "source": "/lecture-4-part2/(.*)", "destination": "/lecture-4-part2/index.html" }
+    { "source": "/lecture-4-part2/(.*)", "destination": "/lecture-4-part2/index.html" },
+    { "source": "/lecture-5/(.*)", "destination": "/lecture-5/index.html" }
   ]
 }

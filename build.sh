@@ -68,5 +68,20 @@ else
   echo "==> WARN: Lecture 4 Part 2 build failed, skipping"
 fi
 
+echo "==> Copying lecture 5 thumbnail"
+cp site/lecture-5-thumb.png dist/
+
+echo "==> Building Lecture 5: JEPA (Slidev)"
+cd lecture-world-models-jepa
+npm install
+if npx slidev build --base /lecture-5/; then
+  cd ..
+  echo "==> Copying lecture 5 build"
+  cp -r lecture-world-models-jepa/dist dist/lecture-5
+else
+  cd ..
+  echo "==> WARN: Lecture 5 build failed, skipping"
+fi
+
 echo "==> Done! Output in dist/"
 ls -la dist/
