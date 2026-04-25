@@ -17,29 +17,38 @@ cp site/lecture-3-thumb.png dist/
 echo "==> Building Lecture 1 (Slidev)"
 cd lecture-1-diffusion-policy
 npm install
-npx slidev build --base /lecture-1/
-cd ..
-
-echo "==> Copying lecture 1 build"
-cp -r lecture-1-diffusion-policy/dist dist/lecture-1
+if npx slidev build --base /lecture-1/; then
+  cd ..
+  echo "==> Copying lecture 1 build"
+  cp -r lecture-1-diffusion-policy/dist dist/lecture-1
+else
+  cd ..
+  echo "==> WARN: Lecture 1 build failed, skipping"
+fi
 
 echo "==> Building Lecture 2 (Slidev)"
 cd lecture-2-vla
 npm install
-npx slidev build --base /lecture-2/
-cd ..
-
-echo "==> Copying lecture 2 build"
-cp -r lecture-2-vla/dist dist/lecture-2
+if npx slidev build --base /lecture-2/; then
+  cd ..
+  echo "==> Copying lecture 2 build"
+  cp -r lecture-2-vla/dist dist/lecture-2
+else
+  cd ..
+  echo "==> WARN: Lecture 2 build failed, skipping"
+fi
 
 echo "==> Building Lecture 3 (Slidev)"
 cd lecture-3-deploy
 npm install
-npx slidev build --base /lecture-3/
-cd ..
-
-echo "==> Copying lecture 3 build"
-cp -r lecture-3-deploy/dist dist/lecture-3
+if npx slidev build --base /lecture-3/; then
+  cd ..
+  echo "==> Copying lecture 3 build"
+  cp -r lecture-3-deploy/dist dist/lecture-3
+else
+  cd ..
+  echo "==> WARN: Lecture 3 build failed, skipping"
+fi
 
 echo "==> Copying lecture 4 thumbnail"
 cp site/lecture-4-thumb.png dist/
