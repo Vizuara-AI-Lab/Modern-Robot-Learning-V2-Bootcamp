@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 6: Two Paradigms of World Models — Modern Robot Learning V2</title>
+<meta name="description" content="Lecture slides for Two Paradigms of World Models — video-first inverse-dynamics models (UniPi, SuSIE, HiP, GR-1, VPP) vs. joint world-action models (Cosmos, DreamZero), and a DreamZero-SO101 fine-tune.">
+<link rel="icon" href="/vizuara-logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..1000;1,6..12,300..1000&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f5;--surface:#f5f0e8;--card:#ffffff;
+  --accent:#c2785c;--warm:#8b6f4e;--teal:#6a9a5b;
+  --blue:#5a7fa5;--purple:#8a6baa;--text:#3a3025;
+  --muted:#8c7e6f;--border:#e5ddd3;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+h1,h2,h3,h4{font-family:'Caveat',cursive;font-weight:700;line-height:1.2}
+
+/* -- NAV -- */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1080px;margin:0 auto;
+  padding:0.75rem 2rem;display:flex;align-items:center;justify-content:space-between;
+}
+.nav-left{display:flex;align-items:center;gap:0.75rem}
+.nav-left img{height:34px;opacity:0.85}
+.nav-left span{font-family:'Caveat',cursive;font-size:1.35rem;color:var(--warm);font-weight:600}
+.nav-links{display:flex;align-items:center;gap:0.75rem}
+.nav-back{
+  font-size:0.9rem;color:var(--muted);text-decoration:none;font-weight:600;
+  display:flex;align-items:center;gap:0.3rem;
+  transition:color 0.2s;
+}
+.nav-back:hover{color:var(--accent)}
+.nav-back svg{width:14px;height:14px}
+
+/* -- HERO -- */
+.hero{
+  max-width:1080px;margin:0 auto;padding:3rem 2rem 2rem;
+}
+.hero-meta{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap}
+.hero-num{font-family:'Caveat',cursive;font-size:1.3rem;color:var(--accent);font-weight:700}
+.hero-date{font-size:0.88rem;color:var(--muted)}
+.hero h1{font-size:3.5rem;color:var(--accent);margin-bottom:0.75rem}
+.hero p{color:var(--muted);max-width:720px;font-size:1.1rem;margin-bottom:1.5rem}
+.hero-tags{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.hero-tags span{
+  background:var(--surface);color:var(--warm);font-size:0.78rem;font-weight:600;
+  padding:0.25rem 0.65rem;border-radius:5px;border:1px solid var(--border);
+}
+.slides-btns{display:flex;gap:0.75rem;flex-wrap:wrap}
+.slides-btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  padding:0.7rem 1.5rem;background:var(--accent);color:#fff;
+  font-size:1rem;font-weight:700;border-radius:10px;
+  text-decoration:none;transition:opacity 0.2s;
+}
+.slides-btn:hover{opacity:0.9}
+.slides-btn svg{width:16px;height:16px}
+
+/* -- SECTIONS -- */
+.divider{max-width:1080px;margin:0 auto;padding:0 2rem}
+.divider hr{border:none;border-top:1px solid var(--border)}
+.section{max-width:1080px;margin:0 auto;padding:2rem 2rem 2.5rem}
+.section-title{
+  font-family:'Caveat',cursive;font-size:2.2rem;color:var(--warm);
+  margin-bottom:0.4rem;display:flex;align-items:center;gap:0.5rem;
+}
+.section-desc{color:var(--muted);font-size:0.95rem;margin-bottom:1.25rem}
+
+/* -- COMPONENT CARDS -- */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.75rem}
+.comp-card{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:0.9rem;text-align:center;text-decoration:none;color:inherit;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.comp-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(58,48,37,0.08)}
+.comp-card .comp-icon{font-size:1.3rem;margin-bottom:0.35rem}
+.comp-card h4{font-size:1.1rem;color:var(--text);font-family:'Caveat',cursive}
+
+/* -- FOOTER -- */
+footer{
+  margin-top:auto;text-align:center;padding:1.5rem 2rem;color:var(--muted);font-size:0.78rem;
+  border-top:1px solid var(--border);
+}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* -- RESPONSIVE -- */
+@media(max-width:640px){
+  .hero h1{font-size:2.6rem}
+  .hero{padding:2rem 1.25rem 1.5rem}
+  .section,.divider{padding-left:1.25rem;padding-right:1.25rem}
+  nav .nav-inner{padding:0.6rem 1.25rem}
+  .comp-grid{grid-template-columns:repeat(2,1fr)}
+  .slides-btns{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-left">
+      <img src="/vizuara-logo.png" alt="Vizuara">
+      <span>Modern Robot Learning V2</span>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="nav-back">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 13l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        All Lectures
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-meta">
+    <span class="hero-num">Lecture 6</span>
+    <span class="hero-date">April 25, 2026</span>
+  </div>
+  <h1>Two Paradigms of World Models</h1>
+  <p>Video-first vs. joint world-action models. Trace the arc from UniPi, SuSIE, HiP, GR-1, and VPP through NVIDIA Cosmos and DreamZero — then fine-tune DreamZero for the SO-101 arm on 4×H100, with all seven bugs documented.</p>
+  <div class="hero-tags">
+    <span>UniPi</span>
+    <span>SuSIE</span>
+    <span>HiP</span>
+    <span>GR-1 / GR-2</span>
+    <span>VPP</span>
+    <span>Cosmos</span>
+    <span>DreamZero</span>
+    <span>SO-101</span>
+    <span>Flow Matching</span>
+  </div>
+  <div class="slides-btns">
+    <a href="/lecture-6/" class="slides-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Open Slides
+    </a>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- Lecture Outline -->
+<div class="section">
+  <h2 class="section-title">Lecture Outline</h2>
+  <p class="section-desc">Three parts: the video-first lineage, the joint world-action shift, and our own DreamZero-SO101 build.</p>
+
+  <h3 style="font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent);margin-bottom:0.75rem">Part 1 — Paradigm A: Video → Inverse Dynamics</h3>
+  <div class="comp-grid" style="margin-bottom:1.5rem">
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🗂️</div>
+      <h4>The Three Categories</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🎬</div>
+      <h4>UniPi</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🖼️</div>
+      <h4>SuSIE</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🧩</div>
+      <h4>HiP</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🤖</div>
+      <h4>GR-1 / GR-2</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🎯</div>
+      <h4>VPP</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🌀</div>
+      <h4>The Full Arc</h4>
+    </a>
+  </div>
+
+  <h3 style="font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent);margin-bottom:0.75rem">Part 2 — Paradigm B: Joint World-Action Models</h3>
+  <div class="comp-grid" style="margin-bottom:1.5rem">
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">⚡</div>
+      <h4>The Core Shift</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🌌</div>
+      <h4>NVIDIA Cosmos</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🔢</div>
+      <h4>Cosmos Tokenizer</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">💭</div>
+      <h4>Meet DreamZero</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🏗️</div>
+      <h4>14B Backbone</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🔗</div>
+      <h4>Joint Formulation</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">〰️</div>
+      <h4>Flow Matching</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🧱</div>
+      <h4>AR Chunks + KV Cache</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🔁</div>
+      <h4>Closed-Loop</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">⚡</div>
+      <h4>DreamZero-Flash 7 Hz</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">📊</div>
+      <h4>Cross-Embodiment</h4>
+    </a>
+  </div>
+
+  <h3 style="font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent);margin-bottom:0.75rem">Part 3 — Building Our Own: DreamZero-SO101</h3>
+  <div class="comp-grid">
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🎯</div>
+      <h4>The Goal</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">💰</div>
+      <h4>Hardware & Budget</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🦾</div>
+      <h4>Adding SO-101 Support</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">📦</div>
+      <h4>Finding SO-101 Data</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🔄</div>
+      <h4>LeRobot → GEAR</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🧪</div>
+      <h4>The PoC Run</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🐛</div>
+      <h4>Seven Bugs</h4>
+    </a>
+    <a href="/lecture-6/" class="comp-card">
+      <div class="comp-icon">🚀</div>
+      <h4>What's Next</h4>
+    </a>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <a href="https://vizuara.ai" target="_blank" rel="noopener">Vizuara AI Labs</a> &middot; Modern Robot Learning from Scratch V2 Bootcamp
+</footer>
+
+</body>
+</html>

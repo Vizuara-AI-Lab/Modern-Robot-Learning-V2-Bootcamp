@@ -83,5 +83,20 @@ else
   echo "==> WARN: Lecture 5 build failed, skipping"
 fi
 
+echo "==> Copying lecture 6 thumbnail"
+cp site/lecture-6-thumb.png dist/
+
+echo "==> Building Lecture 6: Two Paradigms of World Models (Slidev)"
+cd lecture-world-models-paradigms
+npm install
+if npx slidev build --base /lecture-6/; then
+  cd ..
+  echo "==> Copying lecture 6 build"
+  cp -r lecture-world-models-paradigms/dist dist/lecture-6
+else
+  cd ..
+  echo "==> WARN: Lecture 6 build failed, skipping"
+fi
+
 echo "==> Done! Output in dist/"
 ls -la dist/
