@@ -29,14 +29,11 @@ fi
 echo "==> Building Lecture 2 (Slidev)"
 cd lecture-2-vla
 npm install
-if npx slidev build --base /lecture-2/; then
-  cd ..
-  echo "==> Copying lecture 2 build"
-  cp -r lecture-2-vla/dist dist/lecture-2
-else
-  cd ..
-  echo "==> WARN: Lecture 2 build failed, skipping"
-fi
+npx slidev build --base /lecture-2/
+cd ..
+
+echo "==> Copying lecture 2 build"
+cp -r lecture-2-vla/dist dist/lecture-2
 
 echo "==> Building Lecture 3 (Slidev)"
 cd lecture-3-deploy
